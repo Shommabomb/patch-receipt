@@ -63,6 +63,9 @@
                     <timestampedReports>false</timestampedReports>
                     <failWhenNoMutations>false</failWhenNoMutations>
                     <timeoutConstant>3000</timeoutConstant>
+                    <jvmArgs>
+                        <jvmArg>-Xmx192m</jvmArg>
+                    </jvmArgs>
                 </configuration>
                 <dependencies>
                     <dependency>

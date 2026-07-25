@@ -8,7 +8,6 @@ import dev.patchreceipt.domain.ScopeEvidence;
 import dev.patchreceipt.domain.StageResult;
 import dev.patchreceipt.domain.StageStatus;
 import dev.patchreceipt.domain.TestEvidence;
-import dev.patchreceipt.domain.Verdict;
 import dev.patchreceipt.domain.VerificationReceipt;
 import dev.patchreceipt.parsers.PitestReportParser;
 import dev.patchreceipt.parsers.SurefireReportParser;
@@ -41,6 +40,7 @@ public final class VerificationEngine {
     private final SurefireReportParser surefireParser;
     private final PitestReportParser pitestParser;
     private final ReceiptDigestService digestService;
+    private final VerdictPolicy verdictPolicy;
 
     public VerificationEngine(
             ScopeAnalyzer scopeAnalyzer,
@@ -49,7 +49,8 @@ public final class VerificationEngine {
             PatchApplier patchApplier,
             SurefireReportParser surefireParser,
             PitestReportParser pitestParser,
-            ReceiptDigestService digestService) {
+            ReceiptDigestService digestService,
+            VerdictPolicy verdictPolicy) {
         this.scopeAnalyzer = scopeAnalyzer;
         this.workspaceManager = workspaceManager;
         this.mavenRunner = mavenRunner;
@@ -57,6 +58,7 @@ public final class VerificationEngine {
         this.surefireParser = surefireParser;
         this.pitestParser = pitestParser;
         this.digestService = digestService;
+        this.verdictPolicy = verdictPolicy;
     }
 
     public VerificationReceipt verify(VerificationCase verificationCase) {
@@ -252,7 +254,11 @@ public final class VerificationEngine {
                     patchedTestRun.durationMs(),
                     fixed
                             ? "The same sealed reproduction now passes in the shared patched-test run."
-                            : "The patch does not fix the reproduced behavior.",
+                            : patchedTestRun.timedOut()
+                                    ? "The shared patched-test run timed out before the reproduction could be verified."
+                                    : patchedReproduction.tests() == 0
+                                            ? "The shared patched-test run did not execute the reproduction test."
+                                            : "The patch does not fix the reproduced behavior.",
                     sharedTestMetrics(patchedReproduction, patchedTestRun.durationMs()),
                     workspaceManager.sanitize(patchedTestRun.output(), workspace)));
             if (!fixed) {
@@ -267,7 +273,11 @@ public final class VerificationEngine {
                     0,
                     regressionsPass
                             ? "All original tests pass unchanged in the shared patched-test run."
-                            : "The patch breaks at least one original regression.",
+                            : patchedTestRun.timedOut()
+                                    ? "The shared patched-test run timed out before regressions could be verified."
+                                    : patchedRegression.tests() == 0
+                                            ? "The shared patched-test run did not execute the original regressions."
+                                            : "The patch breaks at least one original regression.",
                     sharedTestMetrics(patchedRegression, patchedTestRun.durationMs()),
                     ""));
             if (!regressionsPass) {
@@ -283,8 +293,12 @@ public final class VerificationEngine {
                     edgesPass
                             ? "%d sealed dynamic edge cases pass in the shared patched-test run."
                                     .formatted(edgeCases.tests())
-                            : "%d independent edge cases fail.".formatted(
-                                    edgeCases.failures() + edgeCases.errors()),
+                            : patchedTestRun.timedOut()
+                                    ? "The shared patched-test run timed out before edge cases could be verified."
+                                    : edgeCases.tests() == 0
+                                            ? "The shared patched-test run did not execute the independent edge cases."
+                                            : "%d independent edge cases fail.".formatted(
+                                                    edgeCases.failures() + edgeCases.errors()),
                     sharedTestMetrics(edgeCases, patchedTestRun.durationMs()),
                     ""));
             if (!edgesPass) {
@@ -297,30 +311,48 @@ public final class VerificationEngine {
                         List.of("-q", "org.pitest:pitest-maven:mutationCoverage"),
                         timeout,
                         maxLog);
-                mutation = pitestParser.parse(
-                        patched,
-                        scope.changedLinesByPath(),
-                        manifest.mutation().minimumChangedLineScore());
-                boolean mutationPass = mutationRun.successful()
-                        && mutation.conclusive()
-                        && mutation.changedLineScore() >= mutation.requiredScore();
-                StageStatus mutationStatus = mutationPass ? StageStatus.PASS : StageStatus.WARN;
-                record(stages, listener, stage(
-                        "mutation",
-                        "Challenge the evidence",
-                        mutationStatus,
-                        mutationRun.durationMs(),
-                        mutationPass
-                                ? "Changed-line mutation score is %.1f%%."
-                                        .formatted(mutation.changedLineScore())
-                                : mutation.conclusive()
-                                        ? "Mutation score %.1f%% is below the %.1f%% gate."
-                                                .formatted(
-                                                        mutation.changedLineScore(),
-                                                        mutation.requiredScore())
-                                        : "Mutation evidence is inconclusive.",
-                        mutationMetrics(mutation),
-                        workspaceManager.sanitize(mutationRun.output(), workspace)));
+                boolean mutationReportAvailable = true;
+                try {
+                    mutation = pitestParser.parse(
+                            patched,
+                            scope.changedLinesByPath(),
+                            manifest.mutation().minimumChangedLineScore());
+                } catch (IOException exception) {
+                    mutation = unavailableMutation(manifest);
+                    record(stages, listener, stage(
+                            "mutation",
+                            "Challenge the evidence",
+                            StageStatus.WARN,
+                            mutationRun.durationMs(),
+                            mutationRun.timedOut()
+                                    ? "Mutation testing timed out; its partial report was not accepted."
+                                    : "Mutation testing did not produce a parseable report.",
+                            mutationMetrics(mutation),
+                            workspaceManager.sanitize(mutationRun.output(), workspace)));
+                    mutationReportAvailable = false;
+                }
+                if (mutationReportAvailable) {
+                    boolean mutationPass = mutationRun.successful()
+                            && mutation.conclusive()
+                            && mutation.changedLineScore() >= mutation.requiredScore();
+                    StageStatus mutationStatus = mutationPass ? StageStatus.PASS : StageStatus.WARN;
+                    record(stages, listener, stage(
+                            "mutation",
+                            "Challenge the evidence",
+                            mutationStatus,
+                            mutationRun.durationMs(),
+                            mutationPass
+                                    ? "Changed-line mutation score is %.1f%%."
+                                            .formatted(mutation.changedLineScore())
+                                    : mutation.conclusive()
+                                            ? "Mutation score %.1f%% is below the %.1f%% gate."
+                                                    .formatted(
+                                                            mutation.changedLineScore(),
+                                                            mutation.requiredScore())
+                                            : "Mutation evidence is inconclusive.",
+                            mutationMetrics(mutation),
+                            workspaceManager.sanitize(mutationRun.output(), workspace)));
+                }
             } else {
                 record(stages, listener, stage(
                         "mutation",
@@ -396,26 +428,8 @@ public final class VerificationEngine {
             TestEvidence patchedRegression,
             TestEvidence edgeCases,
             MutationEvidence mutation) {
-        Verdict verdict;
-        String summary;
-        List<String> finalWarnings = new ArrayList<>(warnings);
-        if (!blockingReasons.isEmpty()) {
-            verdict = Verdict.REJECTED;
-            summary = "Mandatory correctness or safety evidence failed.";
-        } else {
-            if (!mutation.conclusive()) {
-                finalWarnings.add("Mutation evidence is inconclusive");
-            } else if (mutation.changedLineScore() < mutation.requiredScore()) {
-                finalWarnings.add("Changed-line mutation score is below the required threshold");
-            }
-            if (!finalWarnings.isEmpty()) {
-                verdict = Verdict.PARTIALLY_VERIFIED;
-                summary = "Correctness gates pass, but confidence or scope evidence is incomplete.";
-            } else {
-                verdict = Verdict.VERIFIED;
-                summary = "All correctness, scope, and mutation evidence gates pass.";
-            }
-        }
+        VerdictPolicy.Decision decision =
+                verdictPolicy.decide(blockingReasons, warnings, mutation);
 
         Instant completedAt = Instant.now();
         VerificationReceipt receipt = new VerificationReceipt(
@@ -429,10 +443,10 @@ public final class VerificationEngine {
                 verificationCase.manifest().title(),
                 verificationCase.candidate().patchId(),
                 verificationCase.candidate().title(),
-                verdict,
-                summary,
+                decision.verdict(),
+                decision.summary(),
                 List.copyOf(blockingReasons),
-                List.copyOf(new java.util.LinkedHashSet<>(finalWarnings)),
+                decision.warnings(),
                 verificationCase.hashes(),
                 Map.of(
                         "java", System.getProperty("java.version"),

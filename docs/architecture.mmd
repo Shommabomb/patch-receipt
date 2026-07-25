@@ -1,0 +1,39 @@
+flowchart LR
+    Browser["Browser dashboard"] --> WebAPI["Spring MVC API"]
+    WebAPI --> Registry["RunRegistry<br/>1 worker, queue of 3"]
+    Registry --> Bundled["BundledCaseRepository<br/>allowlisted case and patch IDs"]
+
+    LocalUser["Trusted local user"] --> CLI["Picocli CLI<br/>explicit execution acknowledgement"]
+    CLI --> LocalLoader["LocalCaseLoader"]
+
+    Bundled --> Case["VerificationCase<br/>manifest, project, verifier pack, patch, hashes"]
+    LocalLoader --> Case
+    Case --> Engine["VerificationEngine"]
+
+    Engine --> Scope["ScopeAnalyzer<br/>preflight before execution"]
+    Engine --> Workspace["WorkspaceManager<br/>fresh baseline and patched copies"]
+    Engine --> Apply["JGit PatchApplier"]
+
+    Workspace --> Baseline["Maven process 1<br/>baseline regressions + reproduction"]
+    Apply --> Patched["Maven process 2<br/>patched reproduction + regressions + edge cases"]
+    Patched --> PIT["Maven process 3<br/>targeted PIT, correctness permitting"]
+
+    Baseline --> Surefire["SurefireReportParser"]
+    Patched --> Surefire
+    PIT --> PitParser["PitestReportParser"]
+    Scope --> Evidence["Canonical domain evidence"]
+    Surefire --> Evidence
+    PitParser --> Evidence
+    Evidence --> Policy["VerdictPolicy"]
+    Policy --> Receipt["VerificationReceipt"]
+    Receipt --> Digest["ReceiptDigestService<br/>SHA-256 over canonical JSON without digest field"]
+    Digest --> JSON["JSON renderer"]
+    Digest --> Markdown["Markdown renderer"]
+    Digest --> HTML["Escaped standalone HTML renderer"]
+
+    JSON --> CLI
+    Markdown --> CLI
+    HTML --> CLI
+    JSON --> Downloads["Receipt API"]
+    Markdown --> Downloads
+    HTML --> Downloads

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-25",
+  "patchId": "minimal-robust",
+  "runs": 5,
+  "normalizedEvidenceIdentical": true,
+  "normalizationRemovedFields": [
+    "receiptId",
+    "receiptDigest",
+    "startedAt",
+    "completedAt",
+    "durationMs",
+    "sharedInvocationDurationMs",
+    "log"
+  ],
+  "normalizedEvidenceSha256": "5f13bb20ed64c23348863f33491809bec255c410608f5b71ecc4184b84f6c81f",
+  "rawRuns": [
+    {
+      "run": 1,
+      "durationMs": 82348,
+      "receiptDigest": "f3a653eaeedb9c7167c342cbac599e2948ae21faaa60dc6ec0af56f9a2211e08"
+    },
+    {
+      "run": 2,
+      "durationMs": 44214,
+      "receiptDigest": "64126d1c4811c39878a6b5b41c29d69efd08a2a11ae118d4c7c0c0949f98a2cb"
+    },
+    {
+      "run": 3,
+      "durationMs": 39539,
+      "receiptDigest": "e9b96895005c64dab8442d3863a4f1b65da79fa1d97cc90e8b376dc4cc17a9bd"
+    },
+    {
+      "run": 4,
+      "durationMs": 34470,
+      "receiptDigest": "ee3d03d0fc356febcfffa87cdd915a33ffc17ab61d3953f2cc0c039b9e076eae"
+    },
+    {
+      "run": 5,
+      "durationMs": 36515,
+      "receiptDigest": "298e71652f37c2f17aa0cf8b049c110196ca12a6f8137c30747516a36fc981b3"
+    }
+  ]
+}

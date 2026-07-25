@@ -3,6 +3,7 @@ package dev.patchreceipt.engine;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.DosFileAttributeView;
 import java.util.Comparator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -54,10 +55,27 @@ public final class WorkspaceManager {
         }
         try (var paths = Files.walk(normalized)) {
             for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
-                Files.deleteIfExists(path);
+                clearReadOnlyAttribute(path);
+                try {
+                    Files.deleteIfExists(path);
+                } catch (IOException exception) {
+                    // Continue so one locked child does not prevent cleanup of unrelated files.
+                }
             }
         } catch (IOException exception) {
-            // Cleanup failure is logged by the caller's runtime; evidence is already in memory.
+            // Best-effort cleanup must not replace the verification result.
+        }
+    }
+
+    private static void clearReadOnlyAttribute(Path path) {
+        try {
+            DosFileAttributeView attributes =
+                    Files.getFileAttributeView(path, DosFileAttributeView.class);
+            if (attributes != null && attributes.readAttributes().isReadOnly()) {
+                attributes.setReadOnly(false);
+            }
+        } catch (IOException | UnsupportedOperationException exception) {
+            // Non-Windows file systems may not expose DOS attributes.
         }
     }
 

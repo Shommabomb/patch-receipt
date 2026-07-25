@@ -1,7 +1,7 @@
 diff --git a/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java b/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
 --- a/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
 +++ b/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
-@@ -11,7 +11,7 @@ public final class CheckoutCalculator {
+@@ -11,8 +11,8 @@ public final class CheckoutCalculator {
          }
  
          int total = subtotalCents;

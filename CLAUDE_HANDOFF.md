@@ -33,7 +33,7 @@ PatchReceipt is an offline Java verification engine for AI-generated patches. It
 On Windows:
 
 ```powershell
-$env:MAVEN_USER_HOME = (Resolve-Path '.cache/maven').Path
+$env:MAVEN_USER_HOME = Join-Path (Get-Location) '.cache\maven'
 .\mvnw.cmd verify
 ```
 
@@ -60,3 +60,37 @@ Independently check:
 - Are safety claims narrower than the actual controls?
 
 Write unedited findings to `reviews/claude/milestone-1.md`, ordered by severity with concrete reproduction steps. If suggesting code, put a unified diff under `reviews/claude/proposals/`; do not apply it.
+
+## Final audit context
+
+Codex has now also completed:
+
+- the six-patch ground-truthed corpus with all expected verdicts and zero
+  unsafe `VERIFIED` outcomes;
+- five repeated robust runs with identical normalized evidence;
+- a final local release build with 38 discovered tests, 36 executed passes,
+  two intentionally gated skips, a live PIT-backed vertical slice, and no
+  leaked Java processes or scratch workspaces;
+- Docker, Railway, and GitHub Actions preparation;
+- architecture, threat-model, evaluation, submission, presentation, and demo
+  assets; and
+- a final local browser proof of the three hosted verdicts.
+
+Please extend the same review with these final checks:
+
+- Can `compile-breaking`, `build-bypass`, or a missing Surefire/PIT report be
+  misrepresented as passing evidence?
+- Can a timed-out or truncated PIT report ever bypass correctness failures,
+  or produce anything stronger than `PARTIALLY_VERIFIED`?
+- Does Windows cleanup reliably remove JGit read-only object files without
+  broadening the deletion boundary?
+- Do Docker/runtime assumptions preserve the allowlisted-only claim?
+- Does CI actually exercise the vertical slice and container health path?
+- Are the architecture, security, evaluation, README, and presentation claims
+  narrower than the implementation?
+- Is any submission claim unsupported because deployment, testers, or the
+  public repository are still pending?
+
+Do not rewrite submission copy merely for style. Prioritize exploitable
+correctness gaps, verdict loopholes, evidence provenance, unsafe claims, and
+demo-breaking reliability issues.

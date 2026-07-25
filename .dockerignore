@@ -1,0 +1,12 @@
+.git
+.github
+.idea
+.vscode
+.cache
+.patchreceipt-work
+target
+tmp
+output
+docs/screenshots
+reviews
+*.log

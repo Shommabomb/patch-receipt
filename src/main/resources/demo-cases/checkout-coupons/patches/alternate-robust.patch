@@ -11,7 +11,7 @@ diff --git a/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java b/sr
  
  public final class CheckoutCalculator {
  
-@@ -10,10 +13,16 @@ public final class CheckoutCalculator {
+@@ -10,10 +13,17 @@ public final class CheckoutCalculator {
              throw new IllegalArgumentException("Subtotal must not be negative");
          }
  
