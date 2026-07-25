@@ -1,0 +1,32 @@
+diff --git a/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java b/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
+--- a/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
++++ b/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
+@@ -1,6 +1,9 @@
+ package dev.patchreceipt.fixture;
+ 
++import java.util.HashSet;
+ import java.util.List;
++import java.util.Locale;
++import java.util.Set;
+ 
+ public final class CheckoutCalculator {
+ 
+@@ -10,10 +13,16 @@ public final class CheckoutCalculator {
+             throw new IllegalArgumentException("Subtotal must not be negative");
+         }
+ 
++        Set<String> appliedCodes = new HashSet<>();
+         int total = subtotalCents;
+         for (Coupon coupon : coupons) {
+-            total -= subtotalCents * coupon.percentage() / 100;
++            if (appliedCodes.add(canonicalCode(coupon.code()))) {
++                total -= subtotalCents * coupon.percentage() / 100;
++            }
+         }
+         return Math.max(0, total);
+     }
++
++    private static String canonicalCode(String code) {
++        return code.trim().toUpperCase(Locale.ROOT);
++    }
+ }

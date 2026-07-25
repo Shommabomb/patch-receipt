@@ -1,0 +1,2 @@
+src/test/java/dev/patchreceipt/verifier/DuplicateCouponReproductionTest.java
+src/test/java/dev/patchreceipt/verifier/CouponContractEdgeCases.java

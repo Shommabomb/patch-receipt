@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Deterministic evidence receipts for AI-generated Java patches.">
+    <title>PatchReceipt — prove the patch</title>
+    <link rel="stylesheet" href="/app.css">
+    <script src="/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+    <a class="brand" href="/" aria-label="PatchReceipt home">
+        <span class="brand-mark" aria-hidden="true">PR</span>
+        <span>PatchReceipt</span>
+    </a>
+    <span class="local-badge">Offline verification · no API key</span>
+</header>
+
+<main>
+    <section class="hero">
+        <div>
+            <p class="eyebrow">Evidence before merge</p>
+            <h1>Codex writes the patch.<br><span>PatchReceipt proves whether it deserves to ship.</span></h1>
+            <p class="lede">A deterministic Java verification pipeline that reproduces the bug, challenges the fix, detects drift, and leaves a portable receipt.</p>
+        </div>
+        <aside class="proof-card" aria-label="Verification promise">
+            <div><strong>Before</strong><span>Bug reproduced</span></div>
+            <div><strong>After</strong><span>Fix + regressions</span></div>
+            <div><strong>Beyond</strong><span>Edge cases + mutants</span></div>
+        </aside>
+    </section>
+
+    <section class="workspace" aria-labelledby="workspace-title">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Bundled safety case</p>
+                <h2 id="workspace-title">Retry-safe checkout coupons</h2>
+            </div>
+            <span class="safe-chip">Hash allowlisted</span>
+        </div>
+
+        <div id="loading" class="loading">Loading the evidence case…</div>
+        <div id="case-content" hidden>
+            <div class="case-grid">
+                <article class="panel bug-panel">
+                    <p class="panel-label">01 · Bug report</p>
+                    <h3>What must be true</h3>
+                    <p id="bug-report"></p>
+                    <div class="boundary">
+                        <strong>Hosted safety boundary</strong>
+                        <span>This demo executes only bundled project and patch hashes. It never accepts uploaded code.</span>
+                    </div>
+                </article>
+
+                <article class="panel candidate-panel">
+                    <p class="panel-label">02 · Candidate patch</p>
+                    <h3>Choose the AI change</h3>
+                    <div id="patch-options" class="patch-options"></div>
+                    <pre id="patch-diff" tabindex="0" aria-label="Selected unified diff"></pre>
+                    <button id="run-button" class="run-button" type="button">
+                        <span>Verify this patch</span>
+                        <span aria-hidden="true">→</span>
+                    </button>
+                </article>
+
+                <article class="panel receipt-panel" aria-live="polite">
+                    <p class="panel-label">03 · Evidence receipt</p>
+                    <div id="idle-state" class="empty-state">
+                        <span class="empty-glyph" aria-hidden="true">✓?</span>
+                        <h3>No verdict without evidence.</h3>
+                        <p>Select a candidate, then run the sealed verifier.</p>
+                    </div>
+                    <div id="run-state" hidden>
+                        <div class="run-header">
+                            <span id="verdict-badge" class="verdict pending">Running</span>
+                            <span id="current-stage">Preparing workspace</span>
+                        </div>
+                        <ol id="stage-list" class="stage-list"></ol>
+                        <div id="verdict-copy" class="verdict-copy"></div>
+                        <nav id="receipt-links" class="receipt-links" aria-label="Receipt downloads"></nav>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="method" aria-labelledby="method-title">
+        <p class="eyebrow">One explainable policy</p>
+        <h2 id="method-title">Green tests are a claim. This is the evidence chain.</h2>
+        <div class="method-grid">
+            <div><span>1</span><strong>Reproduce</strong><p>Observe the named assertion fail on the pristine baseline.</p></div>
+            <div><span>2</span><strong>Challenge</strong><p>Run unchanged regressions and nine sealed dynamic edge cases.</p></div>
+            <div><span>3</span><strong>Mutate</strong><p>Try to break changed lines and require at least 80% kills.</p></div>
+            <div><span>4</span><strong>Constrain</strong><p>Reject forbidden edits and withhold trust for scope drift.</p></div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <span>PatchReceipt v0.1</span>
+    <span>Java 21 · Maven · JUnit · PIT · JGit</span>
+</footer>
+</body>
+</html>

@@ -1,0 +1,45 @@
+diff --git a/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java b/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
+--- a/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
++++ b/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
+@@ -1,6 +1,9 @@
+ package dev.patchreceipt.fixture;
+ 
++import java.util.LinkedHashMap;
+ import java.util.List;
++import java.util.Locale;
++import java.util.Map;
+ 
+ public final class CheckoutCalculator {
+ 
+@@ -10,10 +13,19 @@ public final class CheckoutCalculator {
+             throw new IllegalArgumentException("Subtotal must not be negative");
+         }
+ 
++        Map<String, Coupon> uniqueCoupons = new LinkedHashMap<>();
++        for (Coupon coupon : coupons) {
++            uniqueCoupons.putIfAbsent(canonicalCode(coupon.code()), coupon);
++        }
++
+         int total = subtotalCents;
+-        for (Coupon coupon : coupons) {
++        for (Coupon coupon : uniqueCoupons.values()) {
+             total -= subtotalCents * coupon.percentage() / 100;
+         }
+         return Math.max(0, total);
+     }
++
++    private static String canonicalCode(String code) {
++        return code.trim().toUpperCase(Locale.ROOT);
++    }
+ }
+diff --git a/src/main/java/dev/patchreceipt/fixture/AuditBanner.java b/src/main/java/dev/patchreceipt/fixture/AuditBanner.java
+--- a/src/main/java/dev/patchreceipt/fixture/AuditBanner.java
++++ b/src/main/java/dev/patchreceipt/fixture/AuditBanner.java
+@@ -6,6 +6,6 @@ public final class AuditBanner {
+     }
+ 
+     public static String label() {
+-        return "checkout-core";
++        return "checkout-core-ai-patched";
+     }
+ }

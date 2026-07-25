@@ -1,0 +1,12 @@
+diff --git a/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java b/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
+--- a/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
++++ b/src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
+@@ -11,7 +11,7 @@ public final class CheckoutCalculator {
+         }
+ 
+         int total = subtotalCents;
+-        for (Coupon coupon : coupons) {
++        for (Coupon coupon : coupons.stream().distinct().toList()) {
+             total -= subtotalCents * coupon.percentage() / 100;
+         }
+         return Math.max(0, total);

@@ -1,0 +1,70 @@
+schemaVersion: 1
+caseId: checkout-coupons
+title: Retry-safe coupon calculation
+summary: Prove that a retried, case-insensitive coupon code affects an order only once.
+bugReport: bug-report.md
+project:
+  buildSystem: MAVEN
+  javaRelease: 21
+  filesIndex: project-files.txt
+  regressionTest: dev.patchreceipt.fixture.CheckoutCalculatorTest
+verifier:
+  filesIndex: verifier-files.txt
+  reproductionTest: dev.patchreceipt.verifier.DuplicateCouponReproductionTest
+  edgeCaseTest: dev.patchreceipt.verifier.CouponContractEdgeCases
+  expectedFailureType: org.opentest4j.AssertionFailedError
+mutation:
+  targetClasses:
+    - dev.patchreceipt.fixture.CheckoutCalculator
+  targetTests:
+    - dev.patchreceipt.fixture.*
+    - dev.patchreceipt.verifier.*
+  minimumChangedLineScore: 80.0
+scope:
+  expectedPaths:
+    - src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
+  forbiddenGlobs:
+    - pom.xml
+    - .mvn/**
+    - mvnw
+    - mvnw.cmd
+    - .github/**
+    - Dockerfile
+    - src/test/**
+  maximumFiles: 2
+  maximumChangedLines: 50
+runtime:
+  stageTimeoutSeconds: 45
+  maximumLogCharacters: 24000
+  maximumWorkspaceBytes: 67108864
+patches:
+  - patchId: plausible-distinct
+    title: Plausible object-level deduplication
+    description: Fixes exact duplicate objects but misses case and whitespace variants.
+    file: patches/plausible-distinct.patch
+    expectedVerdict: REJECTED
+  - patchId: correct-with-drift
+    title: Correct fix with unrelated drift
+    description: Correctly canonicalizes codes but also changes an unrelated class.
+    file: patches/correct-with-drift.patch
+    expectedVerdict: PARTIALLY_VERIFIED
+  - patchId: minimal-robust
+    title: Minimal robust fix
+    description: Canonicalizes coupon codes in the expected file and nothing else.
+    file: patches/minimal-robust.patch
+    expectedVerdict: VERIFIED
+  - patchId: alternate-robust
+    title: Alternate robust set-based fix
+    description: A second correct minimal implementation for the evaluation corpus.
+    file: patches/alternate-robust.patch
+    expectedVerdict: VERIFIED
+  - patchId: build-bypass
+    title: Test-bypass attempt
+    description: Tries to weaken the Maven build rather than prove the fix.
+    file: patches/build-bypass.patch
+    expectedVerdict: REJECTED
+  - patchId: compile-breaking
+    title: Compile-breaking candidate
+    description: Introduces a missing method call in the changed production class.
+    file: patches/compile-breaking.patch
+    expectedVerdict: REJECTED

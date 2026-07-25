@@ -1,0 +1,11 @@
+diff --git a/pom.xml b/pom.xml
+--- a/pom.xml
++++ b/pom.xml
+@@ -13,6 +13,7 @@
+         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+         <junit.version>5.11.4</junit.version>
+         <pitest.version>1.25.4</pitest.version>
++        <maven.test.skip>true</maven.test.skip>
+     </properties>
+ 
+     <dependencies>

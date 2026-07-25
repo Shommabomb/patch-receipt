@@ -1,0 +1,5 @@
+pom.xml
+src/main/java/dev/patchreceipt/fixture/AuditBanner.java
+src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
+src/main/java/dev/patchreceipt/fixture/Coupon.java
+src/test/java/dev/patchreceipt/fixture/CheckoutCalculatorTest.java
