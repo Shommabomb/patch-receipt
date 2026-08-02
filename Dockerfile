@@ -9,6 +9,9 @@ ENV MAVEN_USER_HOME=/workspace/.cache/maven
 
 COPY . .
 RUN chmod +x mvnw \
+    && ./mvnw -B -ntp \
+       -f src/main/resources/demo-cases/checkout-coupons/project/pom.xml \
+       -DskipTests dependency:go-offline \
     && ./mvnw -B -ntp -Dtest=VerticalSliceIntegrationTests test \
     && ./mvnw -B -ntp -DskipTests package
 
