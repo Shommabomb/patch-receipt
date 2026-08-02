@@ -1,6 +1,6 @@
 # Claude review record
 
-Claude Code is an independent reviewer, not PatchReceipt's primary builder.
+These files preserve an independent review of PatchReceipt. The user created and directs the project; neither the reviewer nor Codex owns the final product decisions.
 
 For each milestone:
 

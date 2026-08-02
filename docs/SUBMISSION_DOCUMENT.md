@@ -152,7 +152,7 @@ The immediate product is intentionally small and reliable. The same evidence mod
 
 ## Effective use of Codex
 
-Codex is the primary builder. It:
+The user created and directed PatchReceipt and made the final product decisions. Codex helped to:
 
 - converted the hackathon brief into a decision-complete plan;
 - established durable repository rules in `AGENTS.md`;

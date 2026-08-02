@@ -519,7 +519,8 @@ positioning:
 
 > AI writes the patch. PatchReceipt proves whether it deserves to ship.
 
-Codex remains the documented primary builder and hackathon provenance, while
+The user remains the documented project creator and decision-maker, with Codex
+acting as an engineering assistant, while
 the product accepts unified diffs from Codex, Claude Code, Cursor, Copilot, or
 any other coding agent. `docs/AGENTIC_AI_WORKFLOW.md` now documents the real
 agent loop: let an agent create a patch, export its unified diff, run the local
@@ -594,3 +595,12 @@ vertical slice, Ubuntu runs the PIT-backed `VerticalSliceIntegrationTests`, and
 the dependent container job builds and exercises the production image. This
 avoids duplicating the Windows unit suite while retaining the Linux execution
 evidence that matters to the hosted path.
+
+## 2026-08-02 — Attribution correction
+
+The user clarified that they created and directed PatchReceipt, made the final
+product decisions, and used Codex as an engineering assistant rather than as
+the autonomous primary builder. Current repository guidance, public-facing
+copy, recording narration, handoff wording, and presentation notes were updated
+to reflect that ownership accurately. Independent-review records and Git
+history remain preserved rather than being erased or rewritten.

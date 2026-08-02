@@ -1,7 +1,7 @@
 # Claude Code milestone 3 focused re-review prompt
 
 Act as PatchReceipt’s independent senior Java and application-security reviewer.
-Codex is the primary builder. This is a focused read-only re-review of the
+The user directs the project and Codex assists with engineering. This is a focused read-only re-review of the
 milestone-3 remediation; do not edit the main source.
 
 Repository:

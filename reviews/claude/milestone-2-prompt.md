@@ -13,7 +13,7 @@ Read these files first:
 
 Then inspect `git diff` and the affected tests.
 
-Do not act as the primary builder and do not modify the main source. Run
+Do not take implementation ownership or modify the main source. Run
 read-only inspections and tests where useful. Write your unedited,
 severity-ordered findings to:
 

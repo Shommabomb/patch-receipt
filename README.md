@@ -168,9 +168,9 @@ CI runs the focused safety suite on Windows, the full vertical slice and live PI
 
 ## AI use
 
-Codex is the primary builder and owns planning, architecture, implementation, tests, debugging, integration, deployment preparation, evaluation, and submission assets. Its milestone decisions and failing-to-passing loops are recorded in `CODEX_JOURNAL.md` and Git history.
+The user created and directed PatchReceipt, made the product decisions, and owns the final submission. Codex assisted with planning, architecture, implementation, tests, debugging, integration, deployment preparation, evaluation, and submission assets. The development milestones and failing-to-passing loops are recorded in `CODEX_JOURNAL.md` and Git history.
 
-Claude Code is an independent reviewer through `CLAUDE_HANDOFF.md`, `reviews/claude/`, and `REVIEW_DECISIONS.md`; it is not the primary implementation agent. PatchReceipt itself does not call OpenAI or Anthropic at runtime.
+An independently tracked review was conducted through `CLAUDE_HANDOFF.md`, `reviews/claude/`, and `REVIEW_DECISIONS.md`. PatchReceipt itself does not call OpenAI or Anthropic at runtime.
 
 ## Licence
 

@@ -29,9 +29,9 @@ The hosted application may execute only bundled, hash-allowlisted Java cases. Ne
 
 ## Working agreements
 
-- Codex is the primary builder and owns implementation and final decisions.
+- The user created and directs PatchReceipt, owns the product decisions, and approves the final submission. Codex assists with planning, implementation, testing, debugging, and documentation.
 - Record each meaningful milestone, failed check, correction, and self-review in `CODEX_JOURNAL.md`.
-- Claude is an independent reviewer. Put its unedited findings under `reviews/claude/` and disposition every finding in `REVIEW_DECISIONS.md`.
+- Preserve independent-review findings under `reviews/claude/` and disposition every finding in `REVIEW_DECISIONS.md`.
 - Keep public claims measurable and avoid claiming natural-language test generation, semantic intent detection, direct model-to-model communication, or runtime AI.
 - Update README and architecture/evaluation documentation whenever externally visible behaviour changes.
 

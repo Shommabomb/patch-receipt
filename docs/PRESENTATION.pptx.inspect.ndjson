@@ -1,4 +1,4 @@
-{"kind":"deck","id":"pr/ouxg7f","name":"Deck"}
+{"kind":"deck","id":"pr/dnutrk","name":"Deck"}
 {"kind":"layout","layoutId":"/ppt/slideMasters/slideMaster1.xml","name":"Master","type":"master"}
 {"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout1.xml","name":"Title Slide","type":"title"}
 {"kind":"slide","id":"sl/y90nupkv","slide":1,"title":"PatchReceipt","textShapes":3}
@@ -40,7 +40,7 @@
 {"kind":"slide","id":"sl/jyx0ra1s","slide":4,"title":"04","textShapes":8}
 {"kind":"textbox","id":"sh/a5kr2xg3","slide":4,"name":"Slide-Number-Placeholder-3-2","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1184.18,659.24,54.48,25.33]}
 {"kind":"textbox","id":"sh/1cj2d8b6","slide":4,"name":"Title-10-3","text":"One ordered proof pipeline, not a trust score","textPreview":"One ordered proof pipeline, not a trust score","textChars":45,"textLines":1,"bbox":[41.33,36.12,1197.33,109.97]}
-{"kind":"shape","id":"sh/18nu50nu","slide":4,"name":"Google-Shape-2259-p159-4","bbox":[35.46,354.2,1203,0.03]}
+{"kind":"shape","id":"sh/qhcb6l47","slide":4,"name":"Google-Shape-2259-p159-4","bbox":[35.46,354.2,1203,0.03]}
 {"kind":"shape","id":"sh/rm1k7yt4","slide":4,"name":"Google-Shape-2260-p159-5","bbox":[35.46,348.58,11.24,11.24]}
 {"kind":"shape","id":"sh/ql8jytsj","slide":4,"name":"Google-Shape-2261-p159-6","bbox":[446.38,348.58,11.24,11.24]}
 {"kind":"shape","id":"sh/doj29oba","slide":4,"name":"Google-Shape-2262-p159-7","bbox":[858.38,348.58,11.24,11.24]}
@@ -86,4 +86,4 @@
 {"kind":"textbox","id":"sh/cb2tkvap","slide":7,"name":"Subtitle-4-2","text":"Deterministic verification\nNo runtime API required\nReceipts judges can inspect","textPreview":"Deterministic verification | No runtime API required | Receipts judges can inspect","textChars":78,"textLines":3,"bbox":[41.33,522.13,374.67,113.41]}
 {"kind":"textbox","id":"sh/dcbud0ra","slide":7,"name":"Subtitle-4-3","text":"BUILT WITH CODEX","textPreview":"BUILT WITH CODEX","textChars":16,"textLines":1,"bbox":[41.33,41.18,169.33,68.15]}
 {"kind":"shape","id":"sh/ydkbm5sv","slide":7,"name":"close-accent","bbox":[41,461,860,14]}
-{"kind":"notes","id":"nt/gnmp4jqx","slide":7,"text":"Close on the proposition. Codex planned, implemented, tested, debugged, evaluated, documented and prepared the deployment. Claude is used only as an independent review channel through an auditable handoff.\n\n[Sources]\n- Local evidence: CODEX_JOURNAL.md\n- Local handoff: CLAUDE_HANDOFF.md\n[/Sources]"}
+{"kind":"notes","id":"nt/gnmp4jqx","slide":7,"text":"Close on the proposition. The user created and directed PatchReceipt, made the final product decisions, and used Codex as an engineering assistant for planning, implementation, testing, debugging, evaluation, documentation, and deployment preparation.\n\n[Sources]\n- Local evidence: CODEX_JOURNAL.md\n[/Sources]"}
