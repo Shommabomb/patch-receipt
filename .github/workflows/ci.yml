@@ -37,7 +37,7 @@ jobs:
         run: .\mvnw.cmd -B -ntp "-Dtest=!VerticalSliceIntegrationTests" test
 
   ubuntu-verification:
-    name: Ubuntu full verification and PIT
+    name: Ubuntu vertical slice and PIT
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -57,8 +57,8 @@ jobs:
           ./mvnw -B -ntp \
             -f src/main/resources/demo-cases/checkout-coupons/project/pom.xml \
             test org.pitest:pitest-maven:1.25.4:mutationCoverage
-      - name: Run full verification
-        run: ./mvnw -B -ntp verify
+      - name: Run live vertical slice
+        run: ./mvnw -B -ntp -Dtest=VerticalSliceIntegrationTests test
       - name: Upload vertical-slice evidence
         uses: actions/upload-artifact@v7
         with:

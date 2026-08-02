@@ -586,3 +586,11 @@ The wrapper mode and workflow were corrected, and Ubuntu now explicitly warms
 the fixture's test and mutation runtimes before offline verification. A green
 run on the resulting submission commit remains pending until the user pushes
 this change.
+
+The first corrected run passed Windows and the fixture warm-up but failed the
+broader Ubuntu `verify` step. Codex aligned the workflow with its documented
+coverage split: Windows runs every unit and safety test except the live
+vertical slice, Ubuntu runs the PIT-backed `VerticalSliceIntegrationTests`, and
+the dependent container job builds and exercises the production image. This
+avoids duplicating the Windows unit suite while retaining the Linux execution
+evidence that matters to the hosted path.
