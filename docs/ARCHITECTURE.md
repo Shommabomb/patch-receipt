@@ -7,7 +7,12 @@ This document describes the repository after the 27 July 2026 evidence-hardening
 - a public-facing web application for three bundled patch candidates; and
 - a command-line interface for explicitly trusted, local Java 21 Maven projects.
 
-The repository contains a Dockerfile and Railway configuration, but deployment has not yet been performed or verified. The hosted boundary described below is therefore the application’s implemented deployment design, not a claim that a public service is already running.
+The Docker image is deployed at
+[`patch-receipt-production.up.railway.app`](https://patch-receipt-production.up.railway.app/).
+On 2 August 2026 the public dashboard, health endpoint, allowlisted case API,
+all three verdict paths, and all three receipt downloads passed a production
+smoke test. This confirms the implemented hosted boundary on Railway; it is not
+a claim that the container safely accepts arbitrary code.
 
 PatchReceipt is deterministic at runtime. It does not call an LLM or any external AI API. A sealed JUnit verifier pack supplies the reproduction and independent edge-case tests.
 

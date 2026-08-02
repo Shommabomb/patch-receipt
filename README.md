@@ -6,6 +6,12 @@ PatchReceipt is a model-agnostic verification layer for AI-generated Java patche
 
 It uses no runtime LLM or API key.
 
+**Live demo:** [patch-receipt-production.up.railway.app](https://patch-receipt-production.up.railway.app/)
+
+The hosted demo is deliberately curated: it runs only bundled, hash-allowlisted
+projects and patches. Developers can verify their own trusted Java 21 Maven
+projects through the local CLI described below.
+
 ![PatchReceipt verification architecture](docs/architecture.png)
 
 ## What the demo proves
@@ -25,6 +31,15 @@ stage below the production stage limit. This is a local observation, not a
 deployed latency percentile. The exact final packaged Java 21 JAR separately
 completed the same public robust flow through the production-config dashboard
 in 25.943 seconds.
+
+The Railway deployment was smoke-tested on 2 August 2026. The dashboard
+returned HTTP 200, `/actuator/health` returned `UP`, and the three bundled
+candidates produced `REJECTED`, `PARTIALLY_VERIFIED`, and `VERIFIED` as
+expected. The robust production run completed in 6,652 ms with 6/6 regressions,
+9/9 edge cases, clean observed scope, and 5/5 changed-line mutants killed. All
+three receipt formats returned HTTP 200 with matching verdicts, and the tested
+responses contained no local absolute path. This is one production smoke-test
+sample, not a deployed p95 measurement.
 
 ## Run locally
 

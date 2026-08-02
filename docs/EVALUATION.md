@@ -1,6 +1,6 @@
 # PatchReceipt evaluation
 
-Evaluation snapshot: 27 July 2026
+Evaluation snapshot: 2 August 2026
 
 ## Claim under evaluation
 
@@ -138,21 +138,23 @@ of the final receipt found no plain or encoded local absolute path.
 | Five-run determinism | **PASS** | 5/5 normalised evidence structures identical. |
 | Full Java 21 `verify` | **PASS** | 77 discovered; 75 passed; 2 intentionally gated; 0 failures/errors. |
 | Production-config dashboard | **PASS** | All three public verdicts matched; final packaged robust run was 25,943 ms. |
-| Production container | **BLOCKED LOCALLY** | Docker/Podman is unavailable; prepared CI must run a real `VERIFIED` job. |
-| Deployed p95 latency | **PENDING** | Requires a public deployment and declared warm sample. |
-| Three-person usability test | **PENDING** | Requires the three external tester sessions. |
+| Production container | **PASS ON RAILWAY** | Public health was `UP`; a full robust run returned `VERIFIED` with live PIT evidence. |
+| Deployed smoke test | **PASS** | All three expected verdicts and receipt formats passed; the robust sample completed in 6,652 ms. |
+| Deployed p95 latency | **NOT MEASURED** | One robust production sample is reported only as a smoke test, not p95. |
+| Three-person usability test | **NOT COMPLETED** | External testers were unavailable before the deadline; no usability result is claimed. |
 | Claude final adversarial audit | **PASS** | `READY FOR CONTAINER GATE`; no Critical finding remains. |
 
 ## Honest interpretation
 
-The current local evidence establishes that the hardened verdict logic separates
+The local and deployed evidence establishes that the hardened verdict logic separates
 the six ground-truthed patches, that Claude’s three reported exploit classes
 fail closed, that evidence is deterministic after removing declared volatile
 fields, that the final Java 21 JAR produces all three judge-facing verdicts
-through the dashboard, and that generated receipts do not expose the tested
-local path forms.
+through the dashboard, that the Railway container completes the full robust
+verification flow, and that generated receipts do not expose the tested local
+path forms.
 
-It does **not** establish deployed p95 latency, public-provider isolation,
+It does **not** establish deployed p95 latency, an external usability result, public-provider isolation,
 arbitrary-repository safety, design quality, application security, performance,
 concurrency behaviour, or requirements outside the sealed verifier pack. Those
 limits also appear in receipt schema v2.

@@ -551,3 +551,38 @@ so Codex regenerated rather than relabelled the evidence:
 
 The production-container and public-deployment gates remain separate and
 pending.
+
+## 2026-08-02 — Railway deployment and public smoke test
+
+Codex diagnosed three successive clean-container failures from Railway logs:
+
+- `drainingSeconds` was encoded as a JSON string instead of a number;
+- the Temurin build image lacked `unzip`, causing Maven Wrapper to download a
+  tar archive and compare it with the correctly pinned ZIP checksum; and
+- offline nested verification needed the fixture's dynamically selected
+  Surefire and PIT runtimes warmed during the networked image-build stage.
+
+After those corrections, Railway built and started the production image. The
+service is public at
+`https://patch-receipt-production.up.railway.app/`. A read-only and allowlisted
+production smoke test established:
+
+- dashboard HTTP 200 and health status `UP`;
+- one bundled case with exactly three public patch candidates;
+- `plausible-distinct` returned `REJECTED`;
+- `correct-with-drift` returned `PARTIALLY_VERIFIED`;
+- `minimal-robust` returned `VERIFIED` in 6,652 ms with 6/6 regressions,
+  9/9 edge cases, clean observed scope, and 5/5 changed-line mutants killed;
+- JSON, Markdown, and HTML receipts returned HTTP 200 with matching verdicts;
+  and
+- the tested responses contained no local absolute path.
+
+This is a production smoke-test sample, not a p95 measurement. The external
+three-person usability study was not completed, so no tester result is claimed.
+
+Codex also inspected the public GitHub Actions result. Windows passed, while
+Ubuntu stopped with exit code 126 because `mvnw` lacked its Git executable bit.
+The wrapper mode and workflow were corrected, and Ubuntu now explicitly warms
+the fixture's test and mutation runtimes before offline verification. A green
+run on the resulting submission commit remains pending until the user pushes
+this change.

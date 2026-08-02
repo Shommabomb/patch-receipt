@@ -1,7 +1,10 @@
 # Deploy PatchReceipt
 
-PatchReceipt is prepared for Railway through `Dockerfile` and `railway.json`.
-Deployment requires the repository owner's GitHub and Railway accounts; no
+PatchReceipt is deployed through `Dockerfile` and `railway.json` at:
+
+[`https://patch-receipt-production.up.railway.app/`](https://patch-receipt-production.up.railway.app/)
+
+The deployment uses the repository owner's GitHub and Railway accounts; no
 credentials are stored in this project.
 
 ## Before connecting Railway
@@ -85,12 +88,17 @@ Do not call one successful run “p95.”
   Render web service. Do not redesign the application during submission
   week.
 
-## Claims allowed before deployment
+## Verified production status
 
-Until the public smoke test and latency sample complete, say:
+The 2 August 2026 smoke test established:
 
-> The application is Docker- and Railway-ready; local browser verification is
-> complete.
+- dashboard HTTP 200 and health status `UP`;
+- exactly one case and three allowlisted candidates;
+- `plausible-distinct` returned `REJECTED`;
+- `correct-with-drift` returned `PARTIALLY_VERIFIED`;
+- `minimal-robust` returned `VERIFIED` in 6,652 ms; and
+- JSON, Markdown, and HTML receipts returned HTTP 200 with matching verdicts
+  and no tested local absolute-path disclosure.
 
-Do not claim that a public deployment, deployed p95 latency, or provider-level
-isolation has been verified.
+This single production run is not a latency distribution or p95. Provider-level
+isolation and arbitrary-code safety remain outside the supported claims.

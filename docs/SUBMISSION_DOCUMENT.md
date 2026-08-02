@@ -7,12 +7,26 @@
 
 ## Submission links
 
-Replace these placeholders only after the frozen build is public:
+Current public links:
 
-- **Live application:** `[ADD PUBLIC DEPLOYMENT URL]`
-- **Source repository:** `[ADD PUBLIC GITHUB URL]`
+- **Live application:** [patch-receipt-production.up.railway.app](https://patch-receipt-production.up.railway.app/)
+- **Source repository:** [github.com/Shommabomb/patch-receipt](https://github.com/Shommabomb/patch-receipt)
 - **Demo video:** `[ADD PUBLIC VIDEO URL]`
-- **Presentation:** `[ADD PUBLIC DECK OR PDF URL]`
+- **Presentation:** [GitHub PDF](https://github.com/Shommabomb/patch-receipt/blob/main/docs/PRESENTATION.pdf)
+
+## How judges can try it
+
+The public application runs three bundled, hash-allowlisted candidates and
+requires no account. It demonstrates the complete `REJECTED`,
+`PARTIALLY_VERIFIED`, and `VERIFIED` paths. Arbitrary code is intentionally not
+accepted by the hosted service because Maven projects can execute code during
+their build.
+
+For a trusted Java 21 Maven project, judges can clone the repository, build the
+executable JAR, scaffold an independent verifier pack with the `init` command,
+and run the `verify` command with a clean baseline, bug report, unified diff,
+and `--allow-local-execution`. The full command is documented in `README.md`
+and `docs/AGENTIC_AI_WORKFLOW.md`.
 
 ## Problem
 

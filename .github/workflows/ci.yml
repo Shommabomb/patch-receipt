@@ -51,6 +51,12 @@ jobs:
           path: .cache/maven
           key: ubuntu-maven-${{ hashFiles('pom.xml', '.mvn/**', 'src/main/resources/demo-cases/**/pom.xml') }}
           restore-keys: ubuntu-maven-
+      - name: Warm bundled verifier runtimes
+        run: |
+          chmod +x mvnw
+          ./mvnw -B -ntp \
+            -f src/main/resources/demo-cases/checkout-coupons/project/pom.xml \
+            test org.pitest:pitest-maven:1.25.4:mutationCoverage
       - name: Run full verification
         run: ./mvnw -B -ntp verify
       - name: Upload vertical-slice evidence
@@ -152,6 +158,12 @@ jobs:
           path: .cache/maven
           key: ubuntu-evaluation-maven-${{ hashFiles('pom.xml', '.mvn/**', 'src/main/resources/demo-cases/**/pom.xml') }}
           restore-keys: ubuntu-maven-
+      - name: Warm bundled verifier runtimes
+        run: |
+          chmod +x mvnw
+          ./mvnw -B -ntp \
+            -f src/main/resources/demo-cases/checkout-coupons/project/pom.xml \
+            test org.pitest:pitest-maven:1.25.4:mutationCoverage
       - name: Run ground-truthed evaluation corpus
         run: |
           ./mvnw -B -ntp \

@@ -8,7 +8,12 @@ The web application is designed to execute only source, patches, manifests, and 
 
 Do not add public source uploads, raw patch bodies, remote repository URLs, custom verifier code, Maven goals, shell commands, or filesystem paths without replacing this model with a purpose-built isolation design.
 
-The repository contains Docker and Railway configuration, but no deployment has yet been performed or security-tested in a public environment.
+The allowlisted service is deployed at
+[`patch-receipt-production.up.railway.app`](https://patch-receipt-production.up.railway.app/).
+A production smoke test confirmed the health endpoint, identifier-only API,
+three expected verdicts, receipt downloads, and absence of the tested local
+absolute-path forms. This is operational evidence for the declared admission
+boundary, not a penetration test or proof of provider-level isolation.
 
 ## Assets and trust boundaries
 
