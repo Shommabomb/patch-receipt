@@ -40,8 +40,101 @@ class ScopeAnalyzerTests {
                 20));
 
         assertThat(evidence.hardViolations())
-                .containsExactly("Binary patches are not allowed");
+                .contains("Binary patches are not allowed");
         assertThat(evidence.filesChanged()).isOne();
+    }
+
+    @Test
+    void rejectsTraditionalFileHeaderHiddenAfterAnOpenHunk() {
+        ScopeEvidence evidence = analyzer.analyze("""
+                diff --git a/src/main/java/App.java b/src/main/java/App.java
+                --- a/src/main/java/App.java
+                +++ b/src/main/java/App.java
+                @@ -1 +1 @@
+                -old
+                +new
+                diff
+                --- a/pom.xml
+                +++ b/pom.xml
+                @@ -1 +1 @@
+                -safe
+                +poisoned
+                """, policy(
+                List.of("src/main/java/App.java"),
+                List.of("pom.xml"),
+                2,
+                20));
+
+        assertThat(evidence.hardViolations())
+                .anyMatch(message -> message.contains("Unparseable line in hunk"))
+                .anyMatch(message -> message.contains("exactly one --- and one +++"));
+    }
+
+    @Test
+    void acceptsEmptyContextAndKeepsCountingLaterAdditions() {
+        ScopeEvidence evidence = analyzer.analyze("""
+                diff --git a/src/main/java/App.java b/src/main/java/App.java
+                --- a/src/main/java/App.java
+                +++ b/src/main/java/App.java
+                @@ -10,3 +10,5 @@
+                 first
+                +addedBeforeBlank
+
+                +addedAfterBlank
+                 third
+                """, policy(
+                List.of("src/main/java/App.java"),
+                List.of(),
+                2,
+                20));
+
+        assertThat(evidence.hardViolations()).isEmpty();
+        assertThat(evidence.additions()).isEqualTo(2);
+        assertThat(evidence.files().getFirst().changedLines()).containsExactly(11, 13);
+    }
+
+    @Test
+    void countsBlankContextAtTheEndOfThePatchBody() {
+        String patch = String.join(
+                "\n",
+                "diff --git a/src/main/java/App.java b/src/main/java/App.java",
+                "--- a/src/main/java/App.java",
+                "+++ b/src/main/java/App.java",
+                "@@ -1,2 +1,3 @@",
+                " first",
+                "+added",
+                "",
+                "");
+
+        ScopeEvidence evidence = analyzer.analyze(
+                patch,
+                policy(List.of("src/main/java/App.java"), List.of(), 2, 20));
+
+        assertThat(evidence.hardViolations()).isEmpty();
+        assertThat(evidence.additions()).isOne();
+        assertThat(evidence.files().getFirst().changedLines()).containsExactly(2);
+    }
+
+    @Test
+    void rejectsHunkWhoseBodyDoesNotMatchDeclaredCounts() {
+        ScopeEvidence evidence = analyzer.analyze("""
+                diff --git a/src/main/java/App.java b/src/main/java/App.java
+                --- a/src/main/java/App.java
+                +++ b/src/main/java/App.java
+                @@ -1 +1 @@
+                -old
+                +new
+                +extra
+                """, policy(
+                List.of("src/main/java/App.java"),
+                List.of(),
+                2,
+                20));
+
+        assertThat(evidence.hardViolations())
+                .containsExactly(
+                        "Hunk line counts do not match header for src/main/java/App.java: "
+                                + "expected -1/+1 but observed -1/+2");
     }
 
     @Test
@@ -81,6 +174,70 @@ class ScopeAnalyzerTests {
         assertThat(evidence.warnings()).isEmpty();
         assertThat(evidence.files().getFirst().forbidden()).isTrue();
         assertThat(evidence.files().getFirst().expected()).isTrue();
+    }
+
+    @Test
+    void rejectsVerifierGitMetadataEvenWhenManifestOmitsIt() {
+        ScopeEvidence evidence = analyzer.analyze("""
+                diff --git a/.git/config b/.git/config
+                --- a/.git/config
+                +++ b/.git/config
+                @@ -1 +1 @@
+                -safe
+                +poisoned
+                """, policy(
+                List.of(".git/config"),
+                List.of(),
+                2,
+                20));
+
+        assertThat(evidence.hardViolations())
+                .containsExactly("Verifier metadata path changed: .git/config");
+        assertThat(evidence.files().getFirst().forbidden()).isTrue();
+    }
+
+    @Test
+    void rejectsNestedVerifierGitMetadata() {
+        ScopeEvidence evidence = analyzer.analyze("""
+                diff --git a/vendor/.git/config b/vendor/.git/config
+                --- a/vendor/.git/config
+                +++ b/vendor/.git/config
+                @@ -1 +1 @@
+                -safe
+                +poisoned
+                """, policy(
+                List.of("vendor/.git/config"),
+                List.of(),
+                2,
+                20));
+
+        assertThat(evidence.hardViolations())
+                .contains("Verifier metadata path changed: vendor/.git/config");
+        assertThat(evidence.files().getFirst().forbidden()).isTrue();
+    }
+
+    @Test
+    void rejectsRenamesExplicitlyAtPreflight() {
+        ScopeEvidence evidence = analyzer.analyze("""
+                diff --git a/src/main/java/A.java b/src/main/java/B.java
+                similarity index 50%
+                rename from src/main/java/A.java
+                rename to src/main/java/B.java
+                --- a/src/main/java/A.java
+                +++ b/src/main/java/B.java
+                @@ -1 +1 @@
+                -class A {}
+                +class B {}
+                """, policy(
+                List.of("src/main/java/A.java", "src/main/java/B.java"),
+                List.of(),
+                2,
+                20));
+
+        assertThat(evidence.hardViolations())
+                .containsExactly(
+                        "File renames are not supported: "
+                                + "src/main/java/A.java -> src/main/java/B.java");
     }
 
     @Test

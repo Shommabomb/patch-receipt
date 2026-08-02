@@ -25,16 +25,19 @@ class ReceiptRendererTests {
 
     private final MarkdownReceiptRenderer markdownRenderer = new MarkdownReceiptRenderer();
     private final HtmlReceiptRenderer htmlRenderer = new HtmlReceiptRenderer();
+    private final JsonReceiptRenderer jsonRenderer = new JsonReceiptRenderer();
 
     @Test
-    void rendersCanonicalEvidenceWithParityAcrossMarkdownAndHtml() {
+    void rendersCanonicalEvidenceWithParityAcrossJsonMarkdownAndHtml() {
         VerificationReceipt receipt = receipt();
 
         String markdown = markdownRenderer.render(receipt);
         String html = htmlRenderer.render(receipt);
+        String json = jsonRenderer.render(receipt);
 
         assertThat(MarkdownReceiptRenderer.class).hasAnnotation(Component.class);
         assertThat(HtmlReceiptRenderer.class).hasAnnotation(Component.class);
+        assertThat(JsonReceiptRenderer.class).hasAnnotation(Component.class);
 
         for (String evidence : List.of(
                 "VERIFIED",
@@ -46,17 +49,40 @@ class ReceiptRendererTests {
                 "Baseline regression",
                 "baseline_regression",
                 "DuplicateCouponReproductionTest",
+                "CheckoutCalculator.java",
+                "Every canonical check passed.",
+                "Design and performance were not reviewed.",
+                "OBSERVED_FILESYSTEM",
+                "digest-abc123")) {
+            assertThat(markdown).contains(evidence);
+            assertThat(html).contains(evidence);
+            assertThat(json).contains(evidence);
+        }
+
+        assertThat(json)
+                .contains("\"schemaVersion\" : 2")
+                .contains("\"plainSummary\" : \"Every canonical check passed.\"")
+                .contains("\"limitations\" : [")
+                .contains("\"processHealthy\" : true")
+                .contains(
+                        "\"baselineRegression\"",
+                        "\"patchedRegression\"",
+                        "\"edgeCases\"",
+                        "\"changedLines\"");
+        assertThat(markdown).contains(
                 "Reproduction before patch",
                 "Reproduction after patch",
                 "Patched regression",
                 "Independent edge cases",
-                "80.00%",
-                "CheckoutCalculator.java",
-                "digest-abc123")) {
-            assertThat(markdown).contains(evidence);
-            assertThat(html).contains(evidence);
-        }
-
+                "Process healthy",
+                "Changed lines");
+        assertThat(html).contains(
+                "Reproduction before patch",
+                "Reproduction after patch",
+                "Patched regression",
+                "Independent edge cases",
+                "Process healthy",
+                "Changed lines");
         assertThat(markdown).contains("| 9 | 9 | 0 | 0 | 0 | 94 ms |");
         assertThat(html).contains("<td class=\"number\">9</td>");
         assertThat(markdown.indexOf("alpha")).isLessThan(markdown.indexOf("zeta"));
@@ -74,6 +100,8 @@ class ReceiptRendererTests {
                 .isEqualTo(second)
                 .startsWith("<!doctype html>")
                 .contains("<meta charset=\"UTF-8\">")
+                .contains("Content-Security-Policy")
+                .contains("default-src 'none'")
                 .contains("<html lang=\"en\">")
                 .endsWith("</html>\n")
                 .contains("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;")
@@ -98,7 +126,32 @@ class ReceiptRendererTests {
                 .contains("Scope warnings")
                 .contains("unexpected production path")
                 .contains("Changed lines")
+                .contains("Mutation testing introduces small code changes")
                 .endsWith("`digest-abc123`\n");
+    }
+
+    @Test
+    void digestCoversCanonicalSummaryAndLimitations() {
+        ReceiptDigestService digests = new ReceiptDigestService();
+        VerificationReceipt original = receipt();
+        VerificationReceipt first = digests.attachDigest(withLanguage(
+                original,
+                "Every canonical check passed.",
+                List.of("Design and performance were not reviewed.")));
+        VerificationReceipt changedSummary = digests.attachDigest(withLanguage(
+                original,
+                "Different summary.",
+                List.of("Design and performance were not reviewed.")));
+        VerificationReceipt changedLimitations = digests.attachDigest(withLanguage(
+                original,
+                "Every canonical check passed.",
+                List.of("Different limitation.")));
+
+        assertThat(first.receiptDigest()).hasSize(64);
+        assertThat(changedSummary.receiptDigest()).isNotEqualTo(first.receiptDigest());
+        assertThat(changedLimitations.receiptDigest()).isNotEqualTo(first.receiptDigest());
+        assertThat(jsonRenderer.render(first))
+                .contains("\"receiptDigest\" : \"" + first.receiptDigest() + "\"");
     }
 
     private static VerificationReceipt receipt() {
@@ -130,6 +183,7 @@ class ReceiptRendererTests {
                 "");
         MutationEvidence mutation = new MutationEvidence(
                 "LIVE_PIT",
+                true,
                 12,
                 5,
                 4,
@@ -138,10 +192,13 @@ class ReceiptRendererTests {
                 0,
                 80.0,
                 80.0,
+                2,
                 true,
+                List.of(),
                 List.of(finding));
 
         ScopeEvidence scope = new ScopeEvidence(
+                "OBSERVED_FILESYSTEM",
                 2,
                 7,
                 2,
@@ -183,7 +240,7 @@ class ReceiptRendererTests {
                 "log <b>unsafe</b> & trace");
 
         return new VerificationReceipt(
-                1,
+                2,
                 "receipt-123",
                 "0.1.0",
                 "2026-07-25T12:00:00Z",
@@ -195,6 +252,8 @@ class ReceiptRendererTests {
                 "Minimal robust patch",
                 Verdict.VERIFIED,
                 "All correctness gates passed <script>alert(\"x\")</script>",
+                "Every canonical check passed.",
+                List.of("Design and performance were not reviewed."),
                 List.of(),
                 List.of("review warning"),
                 hashes,
@@ -207,5 +266,38 @@ class ReceiptRendererTests {
                 mutation,
                 scope,
                 "digest-abc123");
+    }
+
+    private static VerificationReceipt withLanguage(
+            VerificationReceipt receipt,
+            String plainSummary,
+            List<String> limitations) {
+        return new VerificationReceipt(
+                receipt.schemaVersion(),
+                receipt.receiptId(),
+                receipt.engineVersion(),
+                receipt.startedAt(),
+                receipt.completedAt(),
+                receipt.durationMs(),
+                receipt.caseId(),
+                receipt.caseTitle(),
+                receipt.patchId(),
+                receipt.patchTitle(),
+                receipt.verdict(),
+                receipt.verdictSummary(),
+                plainSummary,
+                limitations,
+                receipt.blockingReasons(),
+                receipt.warnings(),
+                receipt.inputHashes(),
+                receipt.toolchain(),
+                receipt.stages(),
+                receipt.reproduction(),
+                receipt.baselineRegression(),
+                receipt.patchedRegression(),
+                receipt.edgeCases(),
+                receipt.mutation(),
+                receipt.scope(),
+                "");
     }
 }

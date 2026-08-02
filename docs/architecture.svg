@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
   <title id="title">PatchReceipt verification architecture</title>
-  <desc id="desc">Hosted allowlisted cases and trusted local Maven projects enter one deterministic verification engine, which executes baseline proof, patched challenges, targeted mutation testing, verdict policy, and three receipt renderers.</desc>
+  <desc id="desc">Hosted allowlisted cases and trusted local Maven projects enter one deterministic verification engine, which performs strict patch preflight, compares observed filesystem changes, executes baseline proof and patched challenges, runs targeted mutation testing, applies fixed verdict gates, and emits three receipt formats.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
       <path d="M 0 0 L 10 5 L 0 10 z" fill="#121510"/>
@@ -18,7 +18,7 @@
     </style>
   </defs>
   <rect width="1600" height="900" fill="#f6f4ec"/>
-  <text x="64" y="72" class="eyebrow">JAVA 21 · SPRING BOOT · NO RUNTIME AI</text>
+  <text x="64" y="72" class="eyebrow">JAVA 21 &#183; SPRING BOOT &#183; NO RUNTIME AI</text>
   <text x="64" y="133" class="title">PatchReceipt verification architecture</text>
   <rect x="64" y="159" width="930" height="12" fill="#c7ff38"/>
 
@@ -38,10 +38,10 @@
   <rect x="492" y="278" width="330" height="245" class="accent"/>
   <text x="526" y="323" class="eyebrow">DETERMINISTIC CORE</text>
   <text x="526" y="365" class="h">VerificationEngine</text>
-  <text x="526" y="403" class="b">Scope preflight + fresh workspaces</text>
-  <text x="526" y="435" class="b">JGit patch application</text>
+  <text x="526" y="403" class="b">Strict diff preflight + fresh workspaces</text>
+  <text x="526" y="435" class="b">JGit apply + observed filesystem diff</text>
   <text x="526" y="467" class="b">Bounded process execution</text>
-  <text x="526" y="499" class="b">Sanitized, typed evidence</text>
+  <text x="526" y="499" class="b">Sanitised receipt schema v2 evidence</text>
 
   <path d="M822 400 H900 V272" class="line"/>
   <path d="M822 400 H900 V447" class="line"/>
@@ -60,7 +60,7 @@
   <rect x="934" y="568" width="295" height="130" class="box"/>
   <text x="960" y="607" class="small">MAVEN PROCESS 3</text>
   <text x="960" y="639" class="h">Targeted PIT</text>
-  <text x="960" y="669" class="b">Changed-line mutation evidence</text>
+  <text x="960" y="669" class="b">Observed changed-line evidence</text>
 
   <path d="M1229 283 H1282 V392" class="line"/>
   <path d="M1229 458 H1282 V433" class="line"/>
@@ -76,7 +76,7 @@
   <path d="M1426 503 V592" class="line"/>
   <rect x="1280" y="626" width="292" height="106" class="out"/>
   <text x="1308" y="665" class="h">Canonical receipt</text>
-  <text x="1308" y="699" class="b">Hashes · stages · digest</text>
+  <text x="1308" y="699" class="b">Schema v2 &#183; stages &#183; digest</text>
 
   <path d="M1426 732 V775 H1300" class="line"/>
   <path d="M1426 732 V775 H1426" class="line"/>
@@ -88,5 +88,5 @@
   <text x="1396" y="841" class="small">MD</text>
   <text x="1492" y="841" class="small">JSON</text>
 
-  <text x="64" y="840" class="eyebrow">SAFETY COMES FROM BUNDLED ALLOWLISTING — NOT FROM CLAIMING A GENERAL SANDBOX</text>
+  <text x="64" y="840" class="eyebrow">SAFETY COMES FROM BUNDLED ALLOWLISTING &#8212; NOT FROM CLAIMING A GENERAL SANDBOX</text>
 </svg>

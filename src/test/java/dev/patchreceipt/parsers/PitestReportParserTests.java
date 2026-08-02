@@ -23,17 +23,14 @@ class PitestReportParserTests {
     Path project;
 
     @Test
-    void returnsInconclusiveEvidenceWhenMutationReportIsMissing() throws IOException {
-        MutationEvidence evidence =
-                parser.parse(project, Map.of(CALCULATOR_PATH, Set.of(12)), 80.0);
-
-        assertThat(evidence.provenance()).isEqualTo("NOT_AVAILABLE");
-        assertThat(evidence.totalMutants()).isZero();
-        assertThat(evidence.changedLineMutants()).isZero();
-        assertThat(evidence.changedLineScore()).isZero();
-        assertThat(evidence.requiredScore()).isEqualTo(80.0);
-        assertThat(evidence.conclusive()).isFalse();
-        assertThat(evidence.survivingMutants()).isEmpty();
+    void rejectsMissingMutationReport() {
+        assertThatIOException()
+                .isThrownBy(() -> parser.parse(
+                        project,
+                        Map.of(CALCULATOR_PATH, Set.of(12)),
+                        80.0,
+                        2))
+                .withMessageContaining("report is missing");
     }
 
     @Test
@@ -65,7 +62,8 @@ class PitestReportParserTests {
         MutationEvidence evidence = parser.parse(
                 project,
                 Map.of(CALCULATOR_PATH, Set.of(12, 13, 14, 15, 16, 17, 18, 19)),
-                80.0);
+                80.0,
+                2);
 
         assertThat(evidence.provenance()).isEqualTo("LIVE");
         assertThat(evidence.totalMutants()).isEqualTo(9);
@@ -74,8 +72,11 @@ class PitestReportParserTests {
         assertThat(evidence.survived()).isEqualTo(2);
         assertThat(evidence.uncovered()).isOne();
         assertThat(evidence.timedOutOrErrored()).isEqualTo(2);
-        assertThat(evidence.changedLineScore()).isEqualTo(16.7);
+        assertThat(evidence.changedLineScore()).isCloseTo(
+                16.6666666667,
+                org.assertj.core.data.Offset.offset(0.0000001));
         assertThat(evidence.requiredScore()).isEqualTo(80.0);
+        assertThat(evidence.requiredChangedLineMutants()).isEqualTo(2);
         assertThat(evidence.conclusive()).isFalse();
         assertThat(evidence.survivingMutants())
                 .extracting(finding -> finding.status())
@@ -101,13 +102,84 @@ class PitestReportParserTests {
         MutationEvidence evidence = parser.parse(
                 project,
                 Map.of(CALCULATOR_PATH, Set.of(8, 9)),
-                80.0);
+                80.0,
+                2);
 
         assertThat(evidence.changedLineMutants()).isEqualTo(2);
         assertThat(evidence.killed()).isEqualTo(2);
         assertThat(evidence.changedLineScore()).isEqualTo(100.0);
         assertThat(evidence.conclusive()).isTrue();
         assertThat(evidence.survivingMutants()).isEmpty();
+    }
+
+    @Test
+    void listsEveryChangedProductionFileWithoutViableMutationEvidence() throws IOException {
+        writeMutationReport("""
+                <mutations>
+                  %s
+                </mutations>
+                """.formatted(
+                mutation("KILLED", "dev.example.Calculator", 8, "firstTest")));
+
+        MutationEvidence evidence = parser.parse(
+                project,
+                Map.of(
+                        CALCULATOR_PATH, Set.of(8),
+                        "src/main/java/dev/example/Unmutated.java", Set.of(4)),
+                80.0,
+                2);
+
+        assertThat(evidence.filesWithoutMutants())
+                .containsExactly("src/main/java/dev/example/Unmutated.java");
+        assertThat(evidence.conclusive()).isTrue();
+    }
+
+    @Test
+    void nonStandardJavaSourceRootCannotSilentlyBorrowAnotherFilesMutants()
+            throws IOException {
+        writeMutationReport("""
+                <mutations>
+                  %s
+                  %s
+                </mutations>
+                """.formatted(
+                mutation("KILLED", "dev.example.Calculator", 8, "firstTest"),
+                mutation("KILLED", "dev.example.Calculator", 9, "secondTest")));
+
+        MutationEvidence evidence = parser.parse(
+                project,
+                Map.of(
+                        CALCULATOR_PATH, Set.of(8, 9),
+                        "core/src/main/java/dev/example/Other.java", Set.of(4)),
+                80.0,
+                2);
+
+        assertThat(evidence.filesWithoutMutants())
+                .containsExactly("core/src/main/java/dev/example/Other.java");
+    }
+
+    @Test
+    void rejectsPartialMutationRecordEvenWhenAnotherRecordWouldScorePerfectly()
+            throws IOException {
+        writeMutationReport("""
+                <mutations>
+                  %s
+                  <mutation status="KILLED">
+                    <mutatedMethod>calculate</mutatedMethod>
+                    <lineNumber>9</lineNumber>
+                    <mutator>MathMutator</mutator>
+                  </mutation>
+                </mutations>
+                """.formatted(
+                mutation("KILLED", "dev.example.Calculator", 8, "firstTest")));
+
+        assertThatIOException()
+                .isThrownBy(() -> parser.parse(
+                        project,
+                        Map.of(CALCULATOR_PATH, Set.of(8, 9)),
+                        80.0,
+                        2))
+                .withMessageContaining("mutatedClass");
     }
 
     @Test
@@ -122,7 +194,8 @@ class PitestReportParserTests {
                 .isThrownBy(() -> parser.parse(
                         project,
                         Map.of(CALCULATOR_PATH, Set.of(1)),
-                        80.0))
+                        80.0,
+                        2))
                 .withMessageContaining("Cannot parse XML report");
     }
 

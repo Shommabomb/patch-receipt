@@ -2,9 +2,9 @@
 
 ## Mission
 
-PatchReceipt is a deterministic verifier for AI-generated Java patches. Preserve the central claim:
+PatchReceipt is a deterministic verifier for Java patches produced by any coding agent. Preserve the central claim:
 
-> Codex writes the patch. PatchReceipt proves whether it deserves to ship.
+> AI writes the patch. PatchReceipt proves whether it deserves to ship.
 
 The hosted application may execute only bundled, hash-allowlisted Java cases. Never add public repository uploads, raw patch submission, arbitrary commands, runtime LLM calls, authentication, a database, Gradle support, or GitHub integration to the MVP.
 
@@ -33,7 +33,7 @@ The hosted application may execute only bundled, hash-allowlisted Java cases. Ne
 - Record each meaningful milestone, failed check, correction, and self-review in `CODEX_JOURNAL.md`.
 - Claude is an independent reviewer. Put its unedited findings under `reviews/claude/` and disposition every finding in `REVIEW_DECISIONS.md`.
 - Keep public claims measurable and avoid claiming natural-language test generation, semantic intent detection, direct model-to-model communication, or runtime AI.
-- Update README and architecture/evaluation documentation whenever externally visible behavior changes.
+- Update README and architecture/evaluation documentation whenever externally visible behaviour changes.
 
 ## Code review rules
 

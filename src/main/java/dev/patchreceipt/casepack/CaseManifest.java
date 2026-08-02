@@ -45,7 +45,8 @@ public record CaseManifest(
     public record Mutation(
             List<String> targetClasses,
             List<String> targetTests,
-            double minimumChangedLineScore) {
+            double minimumChangedLineScore,
+            int minimumChangedLineMutants) {
 
         public Mutation {
             targetClasses = targetClasses == null ? List.of() : List.copyOf(targetClasses);

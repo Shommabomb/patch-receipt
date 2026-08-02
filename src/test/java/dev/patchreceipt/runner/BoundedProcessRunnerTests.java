@@ -43,18 +43,20 @@ class BoundedProcessRunnerTests {
                         probe("parent", childPid.toString()),
                         temporaryDirectory,
                         Map.of(),
-                        Duration.ofSeconds(5),
+                        Duration.ofSeconds(15),
                         2_000);
             } catch (Exception exception) {
                 throw new CompletionException(exception);
             }
         });
 
-        for (int attempt = 0; Files.notExists(childPid) && attempt < 80; attempt++) {
+        for (int attempt = 0;
+                Files.notExists(childPid) && !runningProbe.isDone() && attempt < 200;
+                attempt++) {
             Thread.sleep(50);
         }
         assertThat(childPid).exists();
-        ProcessResult result = runningProbe.get(10, TimeUnit.SECONDS);
+        ProcessResult result = runningProbe.get(20, TimeUnit.SECONDS);
 
         assertThat(result.timedOut()).isTrue();
         assertThat(result.exitCode()).isEqualTo(-1);

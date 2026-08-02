@@ -10,18 +10,20 @@ flowchart LR
     LocalLoader --> Case
     Case --> Engine["VerificationEngine"]
 
-    Engine --> Scope["ScopeAnalyzer<br/>preflight before execution"]
+    Engine --> Scope["ScopeAnalyzer<br/>strict preflight"]
     Engine --> Workspace["WorkspaceManager<br/>fresh baseline and patched copies"]
     Engine --> Apply["JGit PatchApplier"]
+    Apply --> Observed["ObservedScopeAnalyzer<br/>before/after filesystem diff"]
 
     Workspace --> Baseline["Maven process 1<br/>baseline regressions + reproduction"]
-    Apply --> Patched["Maven process 2<br/>patched reproduction + regressions + edge cases"]
+    Observed --> Patched["Maven process 2<br/>patched reproduction + regressions + edge cases"]
     Patched --> PIT["Maven process 3<br/>targeted PIT, correctness permitting"]
 
     Baseline --> Surefire["SurefireReportParser"]
     Patched --> Surefire
     PIT --> PitParser["PitestReportParser"]
     Scope --> Evidence["Canonical domain evidence"]
+    Observed --> Evidence
     Surefire --> Evidence
     PitParser --> Evidence
     Evidence --> Policy["VerdictPolicy"]

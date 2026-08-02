@@ -14,6 +14,12 @@ import org.w3c.dom.Element;
 public final class SurefireReportParser {
 
     public TestEvidence parse(Path project, String requestedClass, long durationMs) throws IOException {
+        if (requestedClass == null
+                || requestedClass.isBlank()
+                || requestedClass.contains("*")
+                || requestedClass.contains("?")) {
+            throw new IOException("Surefire selector must name an exact test class");
+        }
         Path reports = project.resolve("target/surefire-reports");
         if (!Files.isDirectory(reports)) {
             return new TestEvidence(0, 0, 0, 0, 0, durationMs, List.of());
@@ -75,9 +81,6 @@ public final class SurefireReportParser {
     }
 
     private boolean matches(String requestedClass, String suiteName, String fileName) {
-        if (requestedClass == null || requestedClass.isBlank() || "*".equals(requestedClass)) {
-            return true;
-        }
         return requestedClass.equals(suiteName)
                 || fileName.equals("TEST-" + requestedClass + ".xml")
                 || suiteName.startsWith(requestedClass + "$");

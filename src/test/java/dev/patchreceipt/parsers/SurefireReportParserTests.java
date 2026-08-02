@@ -19,7 +19,8 @@ class SurefireReportParserTests {
 
     @Test
     void returnsEmptyEvidenceWhenReportDirectoryIsMissing() throws IOException {
-        TestEvidence evidence = parser.parse(project, "*", 37);
+        TestEvidence evidence =
+                parser.parse(project, "dev.example.MissingTest", 37);
 
         assertThat(evidence.tests()).isZero();
         assertThat(evidence.passed()).isZero();
@@ -99,6 +100,39 @@ class SurefireReportParserTests {
     }
 
     @Test
+    void skippedMandatorySuiteIsNotSuccessful() throws IOException {
+        writeReport("TEST-dev.example.SkippedTest.xml", """
+                <testsuite name="dev.example.SkippedTest"
+                           tests="1" failures="0" errors="0" skipped="1">
+                  <testcase classname="dev.example.SkippedTest" name="skipped">
+                    <skipped/>
+                  </testcase>
+                </testsuite>
+                """);
+
+        TestEvidence evidence =
+                parser.parse(project, "dev.example.SkippedTest", 8);
+
+        assertThat(evidence.tests()).isOne();
+        assertThat(evidence.passed()).isZero();
+        assertThat(evidence.skipped()).isOne();
+        assertThat(evidence.successful()).isFalse();
+    }
+
+    @Test
+    void rejectsBlankOrWildcardSelectors() {
+        assertThatIOException()
+                .isThrownBy(() -> parser.parse(project, "", 0))
+                .withMessageContaining("exact test class");
+        assertThatIOException()
+                .isThrownBy(() -> parser.parse(project, "dev.example.*", 0))
+                .withMessageContaining("exact test class");
+        assertThatIOException()
+                .isThrownBy(() -> parser.parse(project, "dev.example.Test?", 0))
+                .withMessageContaining("exact test class");
+    }
+
+    @Test
     void rejectsCorruptXmlReport() throws IOException {
         writeReport("TEST-dev.example.BrokenTest.xml", """
                 <testsuite name="dev.example.BrokenTest" tests="1">
@@ -107,7 +141,7 @@ class SurefireReportParserTests {
                 """);
 
         assertThatIOException()
-                .isThrownBy(() -> parser.parse(project, "*", 0))
+                .isThrownBy(() -> parser.parse(project, "dev.example.BrokenTest", 0))
                 .withMessageContaining("Cannot parse XML report");
     }
 

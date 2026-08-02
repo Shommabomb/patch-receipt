@@ -16,6 +16,8 @@ public record VerificationReceipt(
         String patchTitle,
         Verdict verdict,
         String verdictSummary,
+        String plainSummary,
+        List<String> limitations,
         List<String> blockingReasons,
         List<String> warnings,
         Map<String, String> inputHashes,
@@ -30,6 +32,8 @@ public record VerificationReceipt(
         String receiptDigest) {
 
     public VerificationReceipt {
+        plainSummary = plainSummary == null ? "" : plainSummary;
+        limitations = limitations == null ? List.of() : List.copyOf(limitations);
         blockingReasons = blockingReasons == null ? List.of() : List.copyOf(blockingReasons);
         warnings = warnings == null ? List.of() : List.copyOf(warnings);
         inputHashes = inputHashes == null ? Map.of() : Map.copyOf(inputHashes);
@@ -42,7 +46,8 @@ public record VerificationReceipt(
         return new VerificationReceipt(
                 schemaVersion, receiptId, engineVersion, startedAt, completedAt, durationMs,
                 caseId, caseTitle, patchId, patchTitle, verdict, verdictSummary,
-                blockingReasons, warnings, inputHashes, toolchain, stages, reproduction,
+                plainSummary, limitations, blockingReasons, warnings,
+                inputHashes, toolchain, stages, reproduction,
                 baselineRegression, patchedRegression, edgeCases, mutation, scope, digest);
     }
 }

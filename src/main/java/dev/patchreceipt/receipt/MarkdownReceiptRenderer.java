@@ -28,6 +28,13 @@ public final class MarkdownReceiptRenderer {
         output.append("# PatchReceipt Evidence Receipt\n\n");
         output.append("**Verdict:** `").append(value(receipt.verdict())).append("`\n\n");
         output.append(escape(receipt.verdictSummary())).append("\n\n");
+        output.append("## What this means\n\n");
+        output.append(escape(receipt.plainSummary())).append("\n\n");
+        appendStringList(
+                output,
+                "What this run did not prove",
+                receipt.limitations(),
+                "No limitations recorded.");
 
         appendMetadata(output, receipt);
         appendStringList(output, "Blocking reasons", receipt.blockingReasons(), "None.");
@@ -118,7 +125,7 @@ public final class MarkdownReceiptRenderer {
                                 .append("\n"));
             }
             if (stage.log() != null && !stage.log().isBlank()) {
-                output.append("- Sanitized log:\n\n");
+                output.append("- Sanitised log:\n\n");
                 appendIndentedCode(output, stage.log());
             }
             output.append("\n");
@@ -183,9 +190,14 @@ public final class MarkdownReceiptRenderer {
             output.append("No mutation evidence recorded.\n\n");
             return;
         }
+        output.append(
+                "Mutation testing introduces small code changes. A killed mutant means "
+                        + "the configured tests detected that change; the score below covers "
+                        + "viable mutants on observed changed lines.\n\n");
         output.append("| Field | Value |\n");
         output.append("| --- | ---: |\n");
         row(output, "Provenance", mutation.provenance());
+        row(output, "Process healthy", mutation.processHealthy() ? "yes" : "no");
         row(output, "Total mutants", mutation.totalMutants());
         row(output, "Changed-line mutants", mutation.changedLineMutants());
         row(output, "Killed", mutation.killed());
@@ -194,8 +206,16 @@ public final class MarkdownReceiptRenderer {
         row(output, "Timed out or errored", mutation.timedOutOrErrored());
         row(output, "Changed-line score", percentage(mutation.changedLineScore()));
         row(output, "Required score", percentage(mutation.requiredScore()));
+        row(output, "Required viable mutants", mutation.requiredChangedLineMutants());
         row(output, "Conclusive", mutation.conclusive() ? "yes" : "no");
         output.append("\n");
+
+        if (!mutation.filesWithoutMutants().isEmpty()) {
+            appendNestedList(
+                    output,
+                    "Changed production files without viable changed-line evidence",
+                    mutation.filesWithoutMutants());
+        }
 
         if (!mutation.survivingMutants().isEmpty()) {
             output.append("### Surviving mutants\n\n");
@@ -229,6 +249,7 @@ public final class MarkdownReceiptRenderer {
             return;
         }
         output.append("- Files changed: ").append(scope.filesChanged()).append("\n");
+        output.append("- Provenance: `").append(escapeInlineCode(scope.provenance())).append("`\n");
         output.append("- Additions: ").append(scope.additions()).append("\n");
         output.append("- Deletions: ").append(scope.deletions()).append("\n\n");
 

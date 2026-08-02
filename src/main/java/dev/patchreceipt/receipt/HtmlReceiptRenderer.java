@@ -31,6 +31,8 @@ public final class HtmlReceiptRenderer {
                 <head>
                   <meta charset="UTF-8">
                   <meta name="viewport" content="width=device-width, initial-scale=1">
+                  <meta http-equiv="Content-Security-Policy"
+                        content="default-src 'none'; style-src 'unsafe-inline'">
                   <title>PatchReceipt Evidence Receipt</title>
                   <style>
                     :root { color-scheme: light; --ink:#18212f; --muted:#5e6978; --line:#dbe2ea;
@@ -50,6 +52,11 @@ public final class HtmlReceiptRenderer {
                     .verified { background:var(--pass); } .partially-verified { background:var(--warn); }
                     .rejected { background:var(--fail); }
                     .summary { margin:0; font-size:18px; max-width:780px; }
+                    .plain-intro { margin:14px 0 0; max-width:780px; color:var(--muted); }
+                    .plain-summary { margin:16px 0 0; max-width:780px; padding:14px 16px;
+                      border-left:4px solid var(--pass); background:#eaf6ef; font-size:17px; font-weight:700; }
+                    .plain-summary.rejected { border-color:var(--fail); background:#fff0ef; }
+                    .plain-summary.partially-verified { border-color:var(--warn); background:#fff7e5; }
                     .muted { color:var(--muted); }
                     .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
                     .card { padding:14px; background:var(--panel); border-radius:10px; }
@@ -78,12 +85,19 @@ public final class HtmlReceiptRenderer {
                 <header>
                   <div class="verdict %s">%s</div>
                   <h1>PatchReceipt Evidence Receipt</h1>
-                  <p class="summary">%s</p>
+                <p class="summary">%s</p>
+                <p class="plain-intro">PatchReceipt runs the configured reproduction, regression, edge-case, mutation, and file-scope checks.</p>
+                <p class="plain-summary %s"><strong>What this means:</strong> %s</p>
                 </header>
                 <main>
                 """.formatted(verdictClass(receipt), html(value(receipt.verdict())),
-                html(receipt.verdictSummary())));
+                html(receipt.verdictSummary()), verdictClass(receipt), html(receipt.plainSummary())));
 
+        appendMessages(
+                output,
+                "What this run did not prove",
+                receipt.limitations(),
+                "No limitations recorded.");
         appendSummary(output, receipt);
         appendMessages(output, "Blocking reasons", receipt.blockingReasons(), "No blocking reasons.");
         appendMessages(output, "Warnings", receipt.warnings(), "No warnings.");
@@ -187,7 +201,7 @@ public final class HtmlReceiptRenderer {
                 output.append("</tbody></table>");
             }
             if (stage.log() != null && !stage.log().isBlank()) {
-                output.append("<details><summary>Sanitized log</summary><pre>")
+                output.append("<details><summary>Sanitised log</summary><pre>")
                         .append(html(stage.log()))
                         .append("</pre></details>");
             }
@@ -270,8 +284,13 @@ public final class HtmlReceiptRenderer {
             output.append("<p class=\"muted\">No mutation evidence recorded.</p></section>\n");
             return;
         }
+        output.append(
+                "<p class=\"muted\">Mutation testing introduces small code changes. "
+                        + "A killed mutant means the configured tests detected that change; "
+                        + "the score below covers viable mutants on observed changed lines.</p>");
         output.append("<div class=\"grid\">");
         summaryCard(output, "Provenance", mutation.provenance());
+        summaryCard(output, "Process healthy", mutation.processHealthy() ? "Yes" : "No");
         summaryCard(output, "Total mutants", mutation.totalMutants());
         summaryCard(output, "Changed-line mutants", mutation.changedLineMutants());
         summaryCard(output, "Killed", mutation.killed());
@@ -280,8 +299,18 @@ public final class HtmlReceiptRenderer {
         summaryCard(output, "Timed out or errored", mutation.timedOutOrErrored());
         summaryCard(output, "Changed-line score", percentage(mutation.changedLineScore()));
         summaryCard(output, "Required score", percentage(mutation.requiredScore()));
+        summaryCard(
+                output,
+                "Required viable mutants",
+                mutation.requiredChangedLineMutants());
         summaryCard(output, "Conclusive", mutation.conclusive() ? "Yes" : "No");
         output.append("</div>");
+        if (!mutation.filesWithoutMutants().isEmpty()) {
+            appendNestedMessages(
+                    output,
+                    "Changed production files without viable changed-line evidence",
+                    mutation.filesWithoutMutants());
+        }
         if (!mutation.survivingMutants().isEmpty()) {
             output.append("<h3 style=\"margin-top:20px\">Surviving mutants</h3><ul>");
             for (MutationFinding finding : mutation.survivingMutants()) {
@@ -314,6 +343,7 @@ public final class HtmlReceiptRenderer {
             return;
         }
         output.append("<div class=\"grid\">");
+        summaryCard(output, "Provenance", scope.provenance());
         summaryCard(output, "Files changed", scope.filesChanged());
         summaryCard(output, "Additions", scope.additions());
         summaryCard(output, "Deletions", scope.deletions());

@@ -138,5 +138,22 @@ public final class BundledCaseRepository {
         if (manifest.patches().isEmpty()) {
             throw new IllegalStateException("Bundled case has no patches");
         }
+        if (invalidSelector(manifest.project().regressionTest())
+                || invalidSelector(manifest.verifier().reproductionTest())
+                || invalidSelector(manifest.verifier().edgeCaseTest())) {
+            throw new IllegalStateException("Bundled test selectors must name exact test classes");
+        }
+        if (manifest.mutation().minimumChangedLineScore() <= 0
+                || manifest.mutation().minimumChangedLineScore() > 100
+                || manifest.mutation().minimumChangedLineMutants() < 1) {
+            throw new IllegalStateException("Bundled mutation thresholds are invalid");
+        }
+    }
+
+    private boolean invalidSelector(String selector) {
+        return selector == null
+                || selector.isBlank()
+                || selector.contains("*")
+                || selector.contains("?");
     }
 }

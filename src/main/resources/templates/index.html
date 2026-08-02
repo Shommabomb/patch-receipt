@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Deterministic evidence receipts for AI-generated Java patches.">
     <title>PatchReceipt — prove the patch</title>
-    <link rel="stylesheet" href="/app.css">
-    <script src="/app.js" defer></script>
+    <link rel="stylesheet" href="/app.css?v=0.3.2">
+    <script src="/app.js?v=0.3.2" defer></script>
 </head>
 <body>
 <header class="topbar">
@@ -21,8 +21,8 @@
     <section class="hero">
         <div>
             <p class="eyebrow">Evidence before merge</p>
-            <h1>Codex writes the patch.<br><span>PatchReceipt proves whether it deserves to ship.</span></h1>
-            <p class="lede">A deterministic Java verification pipeline that reproduces the bug, challenges the fix, detects drift, and leaves a portable receipt.</p>
+            <h1>AI writes the patch.<br><span>PatchReceipt proves whether it deserves to ship.</span></h1>
+            <p class="lede">Bring a unified diff from any coding agent. PatchReceipt reproduces the bug, challenges the fix, detects drift, and leaves a portable receipt.</p>
         </div>
         <aside class="proof-card" aria-label="Verification promise">
             <div><strong>Before</strong><span>Bug reproduced</span></div>
@@ -45,7 +45,7 @@
             <div class="case-grid">
                 <article class="panel bug-panel">
                     <p class="panel-label">01 · Bug report</p>
-                    <h3>What must be true</h3>
+                    <h3 id="bug-title">What must be true</h3>
                     <p id="bug-report"></p>
                     <div class="boundary">
                         <strong>Hosted safety boundary</strong>
@@ -78,7 +78,13 @@
                         </div>
                         <ol id="stage-list" class="stage-list"></ol>
                         <div id="verdict-copy" class="verdict-copy"></div>
+                        <div id="evidence-metrics" class="evidence-metrics"></div>
+                        <div id="evidence-findings" class="evidence-findings"></div>
+                        <div id="evidence-limitations" class="evidence-limitations"></div>
                         <nav id="receipt-links" class="receipt-links" aria-label="Receipt downloads"></nav>
+                        <button id="reset-button" class="reset-button" type="button" hidden>
+                            Compare another candidate
+                        </button>
                     </div>
                 </article>
             </div>
@@ -98,7 +104,7 @@
 </main>
 
 <footer>
-    <span>PatchReceipt v0.1</span>
+    <span>PatchReceipt v0.3</span>
     <span>Java 21 · Maven · JUnit · PIT · JGit</span>
 </footer>
 </body>

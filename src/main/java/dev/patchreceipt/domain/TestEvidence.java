@@ -16,6 +16,10 @@ public record TestEvidence(
     }
 
     public boolean successful() {
-        return tests > 0 && failures == 0 && errors == 0;
+        return tests > 0
+                && passed == tests
+                && failures == 0
+                && errors == 0
+                && skipped == 0;
     }
 }

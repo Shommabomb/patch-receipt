@@ -20,6 +20,7 @@ mutation:
     - dev.patchreceipt.fixture.*
     - dev.patchreceipt.verifier.*
   minimumChangedLineScore: 80.0
+  minimumChangedLineMutants: 2
 scope:
   expectedPaths:
     - src/main/java/dev/patchreceipt/fixture/CheckoutCalculator.java
@@ -51,13 +52,13 @@ patches:
   - patchId: minimal-robust
     title: Minimal robust fix
     description: Canonicalizes coupon codes in the expected file and nothing else.
-    file: patches/minimal-robust.patch
+    file: patches/minimal-robust-set-based.patch
     expectedVerdict: VERIFIED
   - patchId: alternate-robust
-    title: Alternate robust set-based fix
-    description: A second correct minimal implementation for the evaluation corpus.
-    file: patches/alternate-robust.patch
-    expectedVerdict: VERIFIED
+    title: Alternate robust map-based fix
+    description: Correct behaviour, but too little viable mutation evidence for full verification.
+    file: patches/alternate-robust-map-based.patch
+    expectedVerdict: PARTIALLY_VERIFIED
   - patchId: build-bypass
     title: Test-bypass attempt
     description: Tries to weaken the Maven build rather than prove the fix.

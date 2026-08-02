@@ -64,12 +64,89 @@ class VerdictPolicyTests {
         assertThat(decision.warnings()).isEmpty();
     }
 
+    @Test
+    void unhealthyMutationProcessCannotVerifyEvenWithAReportedPerfectScore() {
+        MutationEvidence partialReport = new MutationEvidence(
+                "LIVE_PROCESS_FAILED",
+                false,
+                10,
+                4,
+                4,
+                0,
+                0,
+                0,
+                100,
+                80,
+                2,
+                true,
+                List.of(),
+                List.of());
+
+        var decision = policy.decide(List.of(), List.of(), partialReport);
+
+        assertThat(decision.verdict()).isEqualTo(Verdict.PARTIALLY_VERIFIED);
+        assertThat(decision.warnings())
+                .containsExactly("Mutation process did not complete successfully");
+    }
+
+    @Test
+    void changedProductionFileWithoutMutantsWithholdsVerification() {
+        MutationEvidence incompleteCoverage = new MutationEvidence(
+                "LIVE",
+                true,
+                10,
+                4,
+                4,
+                0,
+                0,
+                0,
+                100,
+                80,
+                2,
+                true,
+                List.of("src/main/java/dev/example/Unmutated.java"),
+                List.of());
+
+        var decision = policy.decide(List.of(), List.of(), incompleteCoverage);
+
+        assertThat(decision.verdict()).isEqualTo(Verdict.PARTIALLY_VERIFIED);
+        assertThat(decision.warnings())
+                .containsExactly(
+                        "Some changed production files lack viable changed-line mutation evidence");
+    }
+
+    @Test
+    void onePerfectMutantIsStillOnlyPartialEvidence() {
+        MutationEvidence thinEvidence = new MutationEvidence(
+                "LIVE",
+                true,
+                1,
+                1,
+                1,
+                0,
+                0,
+                0,
+                100,
+                80,
+                2,
+                true,
+                List.of(),
+                List.of());
+
+        var decision = policy.decide(List.of(), List.of(), thinEvidence);
+
+        assertThat(decision.verdict()).isEqualTo(Verdict.PARTIALLY_VERIFIED);
+        assertThat(decision.warnings())
+                .containsExactly(
+                        "Too few viable changed-line mutants were generated for full verification");
+    }
+
     private MutationEvidence mutation(
             boolean conclusive,
             double score,
             double required) {
         return new MutationEvidence(
-                "TEST", 1, 1, 1, 0, 0, 0,
-                score, required, conclusive, List.of());
+                "TEST", true, 2, 2, 2, 0, 0, 0,
+                score, required, 2, conclusive, List.of(), List.of());
     }
 }

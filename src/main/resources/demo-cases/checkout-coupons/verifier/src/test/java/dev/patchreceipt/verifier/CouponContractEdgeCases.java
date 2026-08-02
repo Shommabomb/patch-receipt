@@ -40,7 +40,7 @@ class CouponContractEdgeCases {
                             new Coupon("save20", 20)));
                     var original = List.copyOf(coupons);
                     calculator.totalAfterDiscount(10_000, coupons);
-                    assertEquals(original, coupons);
+                    assertEquals(original, coupons, "input list is not modified");
                 }));
     }
 
@@ -50,6 +50,9 @@ class CouponContractEdgeCases {
             int subtotal,
             Coupon... coupons) {
         return DynamicTest.dynamicTest(name, () ->
-                assertEquals(expected, calculator.totalAfterDiscount(subtotal, List.of(coupons))));
+                assertEquals(
+                        expected,
+                        calculator.totalAfterDiscount(subtotal, List.of(coupons)),
+                        name));
     }
 }

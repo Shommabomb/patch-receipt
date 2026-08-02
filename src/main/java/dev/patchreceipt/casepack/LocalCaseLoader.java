@@ -187,5 +187,33 @@ public final class LocalCaseLoader {
                 || manifest.runtime().stageTimeoutSeconds() > 120) {
             throw new IOException("Stage timeout must be between 1 and 120 seconds");
         }
+        if (invalidExactSelector(manifest.project().regressionTest())
+                || invalidExactSelector(manifest.verifier().reproductionTest())
+                || invalidExactSelector(manifest.verifier().edgeCaseTest())) {
+            throw new IOException("Test selectors must name exact test classes");
+        }
+        if (manifest.mutation().targetClasses().stream().anyMatch(this::invalidMutationTarget)
+                || manifest.mutation().targetTests().stream().anyMatch(this::invalidMutationTarget)) {
+            throw new IOException("Mutation targets cannot be blank or wildcard-only");
+        }
+        if (manifest.mutation().minimumChangedLineScore() <= 0
+                || manifest.mutation().minimumChangedLineScore() > 100
+                || manifest.mutation().minimumChangedLineMutants() < 1) {
+            throw new IOException(
+                    "Mutation score must be within (0, 100] and mutant count must be positive");
+        }
+    }
+
+    private boolean invalidExactSelector(String selector) {
+        return selector == null
+                || selector.isBlank()
+                || selector.contains("*")
+                || selector.contains("?");
+    }
+
+    private boolean invalidMutationTarget(String selector) {
+        return selector == null
+                || selector.isBlank()
+                || "*".equals(selector.strip());
     }
 }

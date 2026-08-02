@@ -66,7 +66,10 @@ These checks prevent common accidental path and size problems. They do not make 
 
 Before materialization or execution, `ScopeAnalyzer` inspects the unified diff and:
 
-- rejects empty diffs and diffs without file headers;
+- requires matching `diff --git`, `---`, and `+++` headers;
+- validates header correspondence and every hunk’s declared line counts;
+- accepts an empty context line explicitly and rejects unknown hunk content;
+- rejects empty diffs and diffs without complete file headers;
 - rejects NUL content and Git binary-patch markers;
 - rejects absolute, drive-qualified, and `..` traversal paths;
 - records changed files, additions, deletions, and changed new-line numbers;
@@ -84,9 +87,11 @@ The bundled manifest forbids changes to:
 - `Dockerfile`; and
 - `src/test/**`.
 
-JGit applies the already-inspected unified diff to a fresh patched copy. `VerificationCase` normalizes every materialized path and refuses a destination outside its workspace.
+JGit applies the already-inspected unified diff to a fresh patched copy. `VerificationCase` normalises every materialised path and refuses a destination outside its workspace.
 
-The scope parser is intentionally small and supports the diff forms needed by the MVP. It is not a complete Git security parser and should not be treated as one for arbitrary hostile input.
+Immediately after application, before patched code runs, `ObservedScopeAnalyzer` compares the pristine and patched trees. It independently discovers added, modified, and removed files, computes actual line changes, rejects changed binaries and symbolic links, and reapplies all path and size policies. Any mismatch between preflight claims and observed changes is a hard violation. Final receipts and PIT filtering use this observed evidence.
+
+The preflight parser remains intentionally limited to the strict diff form used by the MVP. Safety does not depend on accepting every Git patch form: unsupported forms fail closed, and accepted forms must reconcile with what changed on disk.
 
 ## Process controls
 
@@ -108,6 +113,11 @@ The production container sets the runner to Maven offline mode and includes the 
 - `MAVEN_OPTS=-Xmx256m -XX:MaxMetaspaceSize=160m`; and
 - a headless JVM.
 
+Maven offline mode prevents dependency resolution from the network; it is not a
+network-egress firewall for arbitrary Java code. The hosted allowlist remains
+the primary safety boundary until the deployment platform enforces egress
+controls.
+
 The bundled PIT worker is single-threaded and has `-Xmx192m`. The application container starts with `-XX:MaxRAMPercentage=35.0` and `-XX:ActiveProcessorCount=2`. A Surefire fork does not currently have a separate explicit heap cap; the container or hosting platform remains the outer memory boundary.
 
 ## Time, output, workspace, queue, and retention limits
@@ -117,6 +127,7 @@ The bundled manifest currently configures:
 | Resource | Implemented limit |
 | --- | --- |
 | Maven process duration | 45 seconds per invocation |
+| Whole production verification | 90 seconds |
 | Captured output | 24,000 characters per invocation |
 | Run workspace | 67,108,864 bytes (64 MiB), checked after execution |
 | Concurrent verification | 1 active job |
@@ -126,19 +137,19 @@ The bundled manifest currently configures:
 
 When a process exceeds its timeout, `BoundedProcessRunner` destroys descendants, then destroys and forcibly destroys the parent if needed. A timeout cannot count as valid reproduction or passing correctness evidence.
 
-Output is read concurrently, capped in memory, and marked as truncated in the internal `ProcessResult`. Workspace paths are replaced with `<workspace>` before logs enter stage evidence. The current receipt schema does not expose the internal truncation flag as a separate field.
+Output is read concurrently, capped in memory, and marked as truncated in the internal `ProcessResult`. Before a receipt is finalised, one central sanitiser masks workspace, Maven-cache, application-root, and user-home paths across stages, logs, reasons, warnings, test failures, mutation evidence, scope evidence, and nested metrics. The receipt records log truncation where exposed by stage evidence.
 
-Workspaces are unique per receipt and restricted beneath `.patchreceipt-work`. Cleanup runs in `finally` and recursively deletes only a normalized descendant of the configured workspace root. The 64 MiB check occurs after child execution; it is not a live disk quota.
+Workspaces are unique per receipt and restricted beneath `.patchreceipt-work`. Cleanup runs in `finally` and recursively deletes only a normalised descendant of the configured workspace root. The 64 MiB check occurs after child execution; it is not a live disk quota.
 
-`RunRegistry` uses one worker and an `ArrayBlockingQueue` of three. A full queue returns HTTP 429. Jobs and receipts are process-local, contain no user account data, and completed entries are purged after 30 minutes when the registry next performs a purge.
+`RunRegistry` uses one worker and an `ArrayBlockingQueue` of three. A full queue returns HTTP 429. Jobs and receipts are process-local, contain no user account data, and terminal completed/failed entries are purged after 30 minutes. Worker failures cannot remain indefinitely `RUNNING`.
 
-There is currently no independent whole-run timeout. A successful run may use up to three separately bounded Maven processes plus in-process work. There is also no per-IP rate limiter.
+The engine enforces a 90-second production whole-run deadline and bounds each new child process by the smaller of its stage limit and remaining run time. In-process cleanup and final rendering may add slight wall-clock overhead after a child process exits. There is no per-IP rate limiter.
 
 ## Evidence and output controls
 
-The engine uses typed domain records and a fixed `VerdictPolicy`. Any blocking correctness, execution, workspace, or hard-scope failure produces `REJECTED`; it cannot be downgraded to `PARTIALLY_VERIFIED`.
+The engine uses typed domain records and a fixed `VerdictPolicy`. Any blocking correctness, execution, workspace, or hard-scope failure produces `REJECTED`; it cannot be downgraded to `PARTIALLY_VERIFIED`. Skipped mandatory tests do not pass. PIT timeout, non-zero exit, unreadable/partial output, or missing file-level mutation evidence is explicitly unhealthy or inconclusive and cannot produce `VERIFIED`.
 
-Logs are sanitized before being stored in stage evidence. The standalone HTML renderer escapes evidence text before embedding it. Receipt download endpoints set explicit content types, content disposition, and `X-Content-Type-Options: nosniff`.
+Receipt schema v2 stores one canonical summary and limitations block alongside all evidence. JSON, Markdown, and HTML render that same content. The standalone HTML renderer escapes evidence text and includes a restrictive document CSP. Receipt download endpoints set explicit content types, content disposition, and `X-Content-Type-Options: nosniff`; mutable status responses send `Cache-Control: no-store`.
 
 `ReceiptDigestService` removes the digest field, sorts canonical JSON properties and map keys, and computes SHA-256 over the remaining receipt. This detects changes when receipts are compared, but the digest is not keyed or signed and does not prevent a party from fabricating a new receipt and digest.
 
@@ -166,12 +177,12 @@ The Docker runtime uses non-root UID/GID `10001` and a non-login user. This limi
 | --- | --- | --- |
 | Caller submits malicious Java or tests | Web API accepts only allowlisted IDs backed by packaged resources | A compromised or malicious bundled resource still executes |
 | Command injection | Fixed goals and `ProcessBuilder` argument arrays; no shell-string concatenation | Trusted local manifests still influence Maven test selectors as arguments |
-| Diff changes tests or build controls | Preflight forbidden globs and JGit application to a fresh copy | Custom diff parser is not complete enough for arbitrary hostile diffs |
+| Diff changes tests or build controls | Strict fail-closed preflight plus post-apply filesystem reconciliation before patched execution | Semantic intent is not inferred; arbitrary hostile repositories remain unsupported |
 | Path traversal or symlink escape | Normalization, root-prefix checks, traversal rejection, and local symlink rejection | Filesystem and platform edge cases require continued testing |
-| CPU or process exhaustion | Three-process design, per-process timeout, process-tree termination, one worker, queue of three | No global run deadline or per-client rate limit |
+| CPU or process exhaustion | Three-process design, 90-second run deadline, per-process timeout, process-tree termination, one worker, queue of three | No per-client rate limit |
 | Memory exhaustion | Maven heap/metaspace bounds, PIT heap bound, application RAM percentage, one active run | Surefire has no explicit child heap cap; provider limits are required |
 | Disk exhaustion | Unique scratch roots, cleanup, 64 MiB post-run check, 8 MiB local intake cap | Workspace size is checked after execution, so temporary growth can exceed the limit |
-| Log or path disclosure | Output cap and workspace-path replacement | Other environment-specific paths or secrets printed by trusted local builds may remain |
+| Log or path disclosure | Output cap and centralised masking of known application, cache, workspace, and home paths | Arbitrary secrets printed by a trusted local build cannot be recognised generically |
 | Receipt tampering | Canonical SHA-256 digest and matching renderers | Digest is unsigned and can be recomputed by an attacker |
 | Queue abuse | Bounded queue and HTTP 429 | Anonymous callers can repeatedly occupy available slots |
 | Dependency or image compromise | Maven Wrapper checksum and offline runtime cache | Container base images are tag-pinned, not digest-pinned; no signed SBOM is enforced |
@@ -184,7 +195,7 @@ Before PatchReceipt accepts any untrusted repository, patch, or verifier pack, i
 - no network egress;
 - read-only base filesystem and ephemeral bounded writable storage;
 - kernel-level CPU, memory, process, and disk quotas;
-- an independent whole-run deadline and reliable process-group termination;
+- provider-enforced deadline and reliable process-group termination independent of the application process;
 - per-client rate limiting and abuse monitoring;
 - a complete, battle-tested patch parser and stricter manifest validation;
 - signed case-pack and receipt provenance;

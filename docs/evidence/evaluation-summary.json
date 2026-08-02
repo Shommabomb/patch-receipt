@@ -1,64 +1,160 @@
 {
-  "schemaVersion": 1,
-  "recordedAt": "2026-07-25",
+  "schemaVersion": 2,
+  "recordedAt": "2026-07-27",
   "environment": {
     "operatingSystem": "Windows 10",
-    "localJavaRuntime": "25.0.3",
+    "evaluationJavaRuntime": "21.0.7",
     "projectReleaseTarget": 21,
     "maven": "3.9.16",
-    "pitest": "1.25.4"
+    "pitest": "1.25.4",
+    "totalCorrectnessHarnessSeconds": 180,
+    "stageCorrectnessHarnessSeconds": 120,
+    "productionTotalSeconds": 90,
+    "productionStageSeconds": 45
   },
   "corpus": {
     "patchCount": 6,
     "expectedVerdictsMatched": 6,
     "unsafeVerifiedCount": 0,
+    "absolutePathScanPassed": true,
+    "manifestSha256": "0f7d2e40fa033931dfd6a964b8591e8ba07ba0277657af438a5ba96d5f585abf",
     "results": [
       {
         "patchId": "plausible-distinct",
+        "patchFile": "patches/plausible-distinct.patch",
+        "patchSha256": "484ce6e2f411ab2cdc8e7258de47679eee6a96de38142b5afce54cd276c5a125",
         "expectedVerdict": "REJECTED",
         "actualVerdict": "REJECTED",
-        "durationMs": 30056,
-        "receiptDigest": "7adcbaebc94e897e1423f80a19c4781465894bdc078799eb6ef6169651882ca4",
+        "durationMs": 20823,
+        "receiptDigest": "c59d3fc79fab8f2828bbe39249234fd2005513786315133137923c9359bc7dc8",
+        "scopeProvenance": "OBSERVED_FILESYSTEM",
         "reason": "Independent edge-case suite fails"
       },
       {
         "patchId": "correct-with-drift",
+        "patchFile": "patches/correct-with-drift.patch",
+        "patchSha256": "14ac9fbf89a563fae901f1f58de4f8e1b087008ad3fddc11330fd2fa48efe375",
         "expectedVerdict": "PARTIALLY_VERIFIED",
         "actualVerdict": "PARTIALLY_VERIFIED",
-        "durationMs": 61567,
-        "receiptDigest": "77a3d9646cc4ed07bfe04df2f6aa181b153a91a5d61915f8ccb23457323e2458",
-        "warning": "Unexpected path changed: src/main/java/dev/patchreceipt/fixture/AuditBanner.java"
+        "durationMs": 22762,
+        "receiptDigest": "1d386eaa66620455091a623ed25ce7d37b7fb3bbacf2669f4747ad6cf94761b0",
+        "scopeProvenance": "OBSERVED_FILESYSTEM",
+        "changedLineMutants": 1,
+        "requiredChangedLineMutants": 2,
+        "killed": 1,
+        "warnings": [
+          "Unexpected path changed: src/main/java/dev/patchreceipt/fixture/AuditBanner.java",
+          "Too few viable changed-line mutants were generated for full verification"
+        ]
       },
       {
         "patchId": "minimal-robust",
+        "patchFile": "patches/minimal-robust-set-based.patch",
+        "patchSha256": "9a305bedf251b48ac02debfa93635024cd6dbc3e8728756d76b695fbef5bbbe1",
         "expectedVerdict": "VERIFIED",
         "actualVerdict": "VERIFIED",
-        "durationMs": 44402,
-        "receiptDigest": "450e79ada585a14644037fff8d4173841423a59710122bd1cf8c3bc156fc1318"
+        "durationMs": 38944,
+        "receiptDigest": "21d6fe25b827a1c775c7485ef722efc99234e926dd9b8c115be9863ae40ff13f",
+        "scopeProvenance": "OBSERVED_FILESYSTEM",
+        "changedLineMutants": 5,
+        "requiredChangedLineMutants": 2,
+        "killed": 5,
+        "mutationProcessHealthy": true
       },
       {
         "patchId": "alternate-robust",
-        "expectedVerdict": "VERIFIED",
-        "actualVerdict": "VERIFIED",
-        "durationMs": 49586,
-        "receiptDigest": "9f24ecda06ef385d78f501ccae5717825bd7b11674fad9d3b2cfbe1018001c12"
+        "patchFile": "patches/alternate-robust-map-based.patch",
+        "patchSha256": "4b5b03a36e48f91e477c6dcb75a876d57750a9978fc046dfa3c607bc0a529c88",
+        "expectedVerdict": "PARTIALLY_VERIFIED",
+        "actualVerdict": "PARTIALLY_VERIFIED",
+        "durationMs": 36191,
+        "receiptDigest": "63866620ca74005409ad367fcf8a59f8eae46c4506c0b94a42e48b552ee547b6",
+        "scopeProvenance": "OBSERVED_FILESYSTEM",
+        "changedLineMutants": 1,
+        "requiredChangedLineMutants": 2,
+        "killed": 1,
+        "mutationProcessHealthy": true,
+        "warnings": [
+          "Too few viable changed-line mutants were generated for full verification"
+        ]
       },
       {
         "patchId": "build-bypass",
+        "patchFile": "patches/build-bypass.patch",
+        "patchSha256": "3e74cf0ba0d00b73f03b06140e3e03a428d0730b5c529328f031433cdb59133b",
         "expectedVerdict": "REJECTED",
         "actualVerdict": "REJECTED",
-        "durationMs": 1,
-        "receiptDigest": "5585db4ca401451f6e04b504413c586fddcbb7a52ef3ee522e7ed185ce20bf78",
+        "durationMs": 3,
+        "receiptDigest": "822791395303e588194f3a3511ee7ba174a40d5c36dd006b34f72b5facf372b5",
+        "scopeProvenance": "PATCH_PREFLIGHT",
         "reason": "Forbidden path changed: pom.xml"
       },
       {
         "patchId": "compile-breaking",
+        "patchFile": "patches/compile-breaking.patch",
+        "patchSha256": "8ed06f920c59d06c274de718dd3d79e827c4bb80c8bbca7a49c232c92021af8f",
         "expectedVerdict": "REJECTED",
         "actualVerdict": "REJECTED",
-        "durationMs": 33772,
-        "receiptDigest": "83a84f078020d93699a3dd12f4ae27210cf0b463c8e9c070023e2ed61ab36589",
-        "reason": "Required patched tests did not execute after compilation failed"
+        "durationMs": 15201,
+        "receiptDigest": "53fb2578e3525475c4afc66ea4727d6b983d4008cb4382edc67a67ac687c8f95",
+        "scopeProvenance": "OBSERVED_FILESYSTEM",
+        "reason": "The patched run did not execute the reproduction test"
       }
     ]
+  },
+  "releaseProof": {
+    "javaRuntime": "21.0.7",
+    "fullVerify": {
+      "testsDiscovered": 77,
+      "testsPassed": 75,
+      "testsSkipped": 2,
+      "failures": 0,
+      "errors": 0,
+      "liveVerticalSliceSeconds": 35.58,
+      "mavenReportedTotalTime": "01:35 min"
+    },
+    "productionConfigDashboard": {
+      "totalLimitSeconds": 90,
+      "stageLimitSeconds": 45,
+      "publicVerdictsMatched": 3,
+      "publicRuns": [
+        {
+          "patchId": "plausible-distinct",
+          "runId": "b09640ec-772d-48d6-b9ca-e5f4b38db149",
+          "verdict": "REJECTED",
+          "durationMs": 23381
+        },
+        {
+          "patchId": "correct-with-drift",
+          "runId": "c1fec2c1-9a2f-4229-8666-dc81babefdbe",
+          "verdict": "PARTIALLY_VERIFIED",
+          "durationMs": 30125
+        },
+        {
+          "patchId": "minimal-robust",
+          "runId": "71a5dd7c-6406-4124-9436-664076599582",
+          "verdict": "VERIFIED",
+          "durationMs": 25943
+        }
+      ],
+      "finalPackagedRobustRun": {
+        "runId": "71a5dd7c-6406-4124-9436-664076599582",
+        "verdict": "VERIFIED",
+        "durationMs": 25943,
+        "regressionsPassed": 6,
+        "regressionsTotal": 6,
+        "edgeCasesPassed": 9,
+        "edgeCasesTotal": 9,
+        "changedLineMutants": 5,
+        "requiredChangedLineMutants": 2,
+        "killed": 5,
+        "mutationProcessHealthy": true,
+        "scopeProvenance": "OBSERVED_FILESYSTEM",
+        "unexpectedFiles": 0,
+        "absolutePathScanPassed": true,
+        "statusCacheControl": "no-store",
+        "receiptDigest": "c0ba742acf8e7928fbcfbeeb6fbb35cb5b87ca2741df8dfe67fd90fd78ebc0ab"
+      }
+    }
   }
 }

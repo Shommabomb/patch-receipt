@@ -13,9 +13,9 @@ This checklist separates work Codex can complete in the repository from actions 
 - [x] Hosted API restricted to bundled case and patch identifiers.
 - [x] Trusted-project CLI requires `--allow-local-execution`.
 - [x] Single-page judge-facing dashboard implemented.
-- [x] Browser confirmed all three public verdict states.
-- [x] Robust browser run measured at 27,036 ms with 6 regressions, 9 edges, and 4 of 4 changed-line mutants killed.
-- [x] Final local suite: 38 discovered, 36 passed, 2 intentionally gated skips.
+- [x] Browser-confirm the hardened build’s three public verdict states.
+- [x] Record the hardened production-config browser run with 6 regressions, 9 edges, and 5 of 5 changed-line mutants killed.
+- [x] Record the final full local suite after Milestone 3.
 - [x] Live vertical slice passed and left zero Java processes and zero scratch workspaces.
 - [x] Dockerfile, Railway health configuration, and Windows/Ubuntu CI workflow authored.
 - [x] Evaluation, demo, tester, and submission-checklist drafts created.
@@ -34,10 +34,12 @@ This checklist separates work Codex can complete in the repository from actions 
 - [x] Update `README.md` from implementation-status language to final public instructions.
 - [x] Finish the submission document.
 - [x] Create and visually verify the seven-slide presentation and PDF export.
-- [x] Perform final local broken-link, receipt-parity, artifact-count, and layout checks.
+- [x] Perform final local broken-link, receipt-parity, artefact-count, and layout checks.
 - [ ] Capture final screenshots from the frozen public deployment.
-- [ ] Incorporate Claude's milestone review under `reviews/claude/` and disposition each finding in `REVIEW_DECISIONS.md`.
-- [ ] Freeze behavior, version all artifacts consistently, and perform final broken-link and receipt-parity checks.
+- [x] Preserve Claude’s complete milestone-2 review and disposition every finding.
+- [x] Preserve Claude’s focused milestone-3 re-review and disposition every new finding.
+- [x] Preserve Claude’s final adversarial audit and disposition FA-1, FA-2, and FM-1 through FM-5.
+- [ ] Freeze behaviour, version all artefacts consistently, and perform final broken-link and receipt-parity checks.
 
 ## User and account actions
 
@@ -97,7 +99,7 @@ Do not submit until every statement below is true:
 
 - [ ] The public URL is healthy and needs no credentials.
 - [ ] The final GitHub Actions run is green.
-- [ ] The six-patch corpus has zero unsafe `VERIFIED` outcomes.
+- [x] The hardened six-patch corpus has zero unsafe `VERIFIED` outcomes.
 - [ ] Pending evaluation claims are either measured or removed from submission materials.
 - [ ] The presentation and video use only frozen-version evidence.
 - [ ] The video is no longer than three minutes.

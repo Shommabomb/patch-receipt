@@ -51,7 +51,7 @@ public final class PatchReceiptCli {
 
     @CommandLine.Command(
             name = "patchreceipt",
-            description = "Deterministic evidence receipts for AI-generated Java patches.",
+            description = "Deterministic evidence receipts for Java patches from any coding agent.",
             mixinStandardHelpOptions = true)
     static final class RootCommand implements Runnable {
 
@@ -219,6 +219,7 @@ public final class PatchReceiptCli {
               targetTests:
                 - example.*
               minimumChangedLineScore: 80.0
+              minimumChangedLineMutants: 2
             scope:
               expectedPaths:
                 - src/main/java/example/ChangedClass.java

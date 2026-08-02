@@ -88,6 +88,79 @@ jobs:
         run: |
           curl --fail --silent http://127.0.0.1:18080/api/v1/cases \
             | grep --quiet '"minimal-robust"'
+      - name: Run full verification inside production image
+        run: |
+          start_response="$(
+            curl --fail --silent \
+              --request POST \
+              --header 'Content-Type: application/json' \
+              --data '{"caseId":"checkout-coupons","patchId":"minimal-robust"}' \
+              http://127.0.0.1:18080/api/v1/runs
+          )"
+          run_id="$(jq --raw-output '.runId' <<<"$start_response")"
+          test -n "$run_id"
+          test "$run_id" != "null"
+
+          for attempt in {1..120}; do
+            status_response="$(
+              curl --fail --silent \
+                --header 'Cache-Control: no-cache' \
+                "http://127.0.0.1:18080/api/v1/runs/$run_id"
+            )"
+            state="$(jq --raw-output '.state' <<<"$status_response")"
+            if [ "$state" = "COMPLETED" ]; then
+              test "$(jq --raw-output '.verdict' <<<"$status_response")" = "VERIFIED"
+              receipt="$(
+                curl --fail --silent \
+                  "http://127.0.0.1:18080/api/v1/runs/$run_id/receipt.json"
+              )"
+              test "$(jq --raw-output '.schemaVersion' <<<"$receipt")" = "2"
+              test "$(jq --raw-output '.scope.provenance' <<<"$receipt")" = \
+                "OBSERVED_FILESYSTEM"
+              test "$(jq --raw-output '.mutation.processHealthy' <<<"$receipt")" = \
+                "true"
+              test "$(jq --raw-output '.mutation.changedLineMutants' <<<"$receipt")" -ge \
+                "$(jq --raw-output '.mutation.requiredChangedLineMutants' <<<"$receipt")"
+              exit 0
+            fi
+            if [ "$state" = "FAILED" ]; then
+              jq . <<<"$status_response"
+              docker logs patchreceipt-ci
+              exit 1
+            fi
+            sleep 1
+          done
+          docker logs patchreceipt-ci
+          exit 1
       - name: Stop image
         if: always()
         run: docker stop patchreceipt-ci || true
+
+  evaluation:
+    name: On-demand six-patch evaluation
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: actions/cache@v5
+        with:
+          path: .cache/maven
+          key: ubuntu-evaluation-maven-${{ hashFiles('pom.xml', '.mvn/**', 'src/main/resources/demo-cases/**/pom.xml') }}
+          restore-keys: ubuntu-maven-
+      - name: Run ground-truthed evaluation corpus
+        run: |
+          ./mvnw -B -ntp \
+            -Dpatchreceipt.evaluation=true \
+            -Dtest=EvaluationCorpusIntegrationTests \
+            test
+      - name: Upload evaluation receipts
+        uses: actions/upload-artifact@v7
+        with:
+          name: evaluation-receipts
+          path: target/evaluation-receipts
+          if-no-files-found: error

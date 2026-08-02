@@ -3,7 +3,7 @@
 **Primary track:** Agentic Coding
 **Secondary angle:** Building Evals
 
-> Codex writes the patch. PatchReceipt proves whether it deserves to ship.
+> AI writes the patch. PatchReceipt proves whether it deserves to ship.
 
 ## Submission links
 
@@ -24,24 +24,25 @@ PatchReceipt turns that decision into a deterministic verification receipt.
 
 ## Solution
 
-PatchReceipt is a Java 21 verification system for small AI-generated Java patches. For each candidate it:
+PatchReceipt is a model-agnostic Java 21 verification system for small AI-generated Java patches. The candidate may come from Codex, Claude Code, Cursor, Copilot, or any other tool that can produce a unified diff. For each candidate it:
 
 1. checks the unified diff and declared change scope before execution;
 2. runs the pristine project's original regressions;
 3. injects a sealed reproduction test and proves the intended assertion fails before the patch;
 4. applies the patch to a fresh copy with JGit;
-5. proves the same reproduction passes afterward;
-6. reruns the unchanged original regressions;
-7. injects a sealed JUnit dynamic-test pack with independent edge cases;
-8. runs PIT against the changed production class and scores viable mutants on changed lines;
-9. applies fixed verdict rules; and
-10. renders one canonical evidence model as HTML, Markdown, and JSON with input hashes and a SHA-256 receipt digest.
+5. compares the pristine and patched filesystems and rejects hidden or mismatched changes before patched code runs;
+6. proves the same reproduction passes afterward;
+7. reruns the unchanged original regressions;
+8. injects a sealed JUnit dynamic-test pack with independent edge cases;
+9. runs a version-pinned PIT process against manifest targets and scores viable mutants on observed changed lines;
+10. applies fixed verdict rules; and
+11. renders receipt schema v2 as HTML, Markdown, and JSON with canonical summary, limitations, input hashes, and a SHA-256 digest.
 
 The result is not a weighted trust score:
 
 - **REJECTED** means a mandatory correctness, execution, or hard-scope gate failed.
-- **PARTIALLY_VERIFIED** means correctness passed, but scope drift or incomplete mutation confidence prevents a full claim.
-- **VERIFIED** requires every mandatory gate, clean declared scope, and the mutation threshold.
+- **PARTIALLY_VERIFIED** means correctness passed, but observed scope drift or unhealthy/incomplete mutation confidence prevents a full claim.
+- **VERIFIED** requires every mandatory gate, clean observed scope, a healthy complete mutation run for every changed production file, and the mutation threshold.
 
 ## Judge-facing case
 
@@ -55,7 +56,7 @@ PatchReceipt exposes three deliberately plausible outcomes:
 | --- | --- | --- |
 | Object-level `distinct()` | Fixes the obvious duplicate but fails three sealed edge cases involving code identity | `REJECTED` |
 | Correct canonicalization plus unrelated edit | Passes correctness and mutation checks but changes an unexpected production file | `PARTIALLY_VERIFIED` |
-| Minimal robust canonicalization | Passes six regressions, nine sealed edge cases, mutation pressure, and declared scope | `VERIFIED` |
+| Minimal robust canonicalization | Passes six regressions, nine sealed edge cases, mutation pressure, and clean observed scope | `VERIFIED` |
 
 The demonstration is designed so a judge can understand the failed counterexample and the robust evidence within three minutes.
 
@@ -103,23 +104,28 @@ The six-patch ground-truthed corpus contains:
 - one forbidden build/test bypass; and
 - one compile-breaking patch.
 
-The corpus produces all six expected verdicts with zero unsafe patches marked `VERIFIED`. The primary robust browser run completed in 27,036 ms with:
+The hardened corpus produces all six expected verdicts with zero unsafe patches marked `VERIFIED`. The primary robust corpus run completed in 38,944 ms in the extended correctness harness with:
 
 - 6 of 6 original regressions passing;
 - 9 of 9 sealed edge cases passing;
-- 4 of 4 viable changed-line mutants killed; and
+- 5 of 5 viable observed changed-line mutants killed; and
 - no hard or soft scope violation.
 
-Five repeated robust runs produced identical normalized evidence. Deployed
-warm latency and the three-person usability study must be reported only after
-their recorded protocols complete. The live evaluation status and
-machine-readable summaries are documented in `docs/EVALUATION.md`.
+Five repeated hardened runs produced identical normalised evidence. The final
+packaged Java 21 JAR also completed the public robust flow through the
+production-config dashboard in 25.943 seconds. Production-container proof,
+deployed warm latency, and the three-person usability study must still be
+reported only after their recorded protocols complete. The live evaluation
+status and machine-readable summaries are documented in
+`docs/EVALUATION.md`.
 
 ## Impact
 
 PatchReceipt targets a growing bottleneck in agentic software development: code generation is becoming cheaper, while high-quality review evidence remains expensive.
 
 The MVP demonstrates a practical pattern:
+
+> Coding agent → unified diff → PatchReceipt → evidence receipt → human or CI decision.
 
 - require proof that the bug exists before claiming it is fixed;
 - keep independent tests outside the patchable project;

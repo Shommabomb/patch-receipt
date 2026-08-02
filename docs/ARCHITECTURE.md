@@ -2,7 +2,7 @@
 
 ## Status and scope
 
-This document describes the repository as implemented on 2026-07-25. PatchReceipt is a single Java 21 and Spring Boot 4.1 Maven application with two entry points:
+This document describes the repository after the 27 July 2026 evidence-hardening milestone. PatchReceipt is a single Java 21 and Spring Boot 4.1 Maven application with two entry points:
 
 - a public-facing web application for three bundled patch candidates; and
 - a command-line interface for explicitly trusted, local Java 21 Maven projects.
@@ -26,18 +26,20 @@ flowchart LR
     LocalLoader --> Case
     Case --> Engine["VerificationEngine"]
 
-    Engine --> Scope["ScopeAnalyzer<br/>preflight before execution"]
+    Engine --> Scope["ScopeAnalyzer<br/>strict preflight"]
     Engine --> Workspace["WorkspaceManager<br/>fresh baseline and patched copies"]
     Engine --> Apply["JGit PatchApplier"]
+    Apply --> Observed["ObservedScopeAnalyzer<br/>before/after filesystem diff"]
 
     Workspace --> Baseline["Maven process 1<br/>baseline regressions + reproduction"]
-    Apply --> Patched["Maven process 2<br/>patched reproduction + regressions + edge cases"]
+    Observed --> Patched["Maven process 2<br/>patched reproduction + regressions + edge cases"]
     Patched --> PIT["Maven process 3<br/>targeted PIT, correctness permitting"]
 
     Baseline --> Surefire["SurefireReportParser"]
     Patched --> Surefire
     PIT --> PitParser["PitestReportParser"]
     Scope --> Evidence["Canonical domain evidence"]
+    Observed --> Evidence
     Surefire --> Evidence
     PitParser --> Evidence
     Evidence --> Policy["VerdictPolicy"]
@@ -69,9 +71,9 @@ The same system is available as editable Mermaid source
 | `domain` | Defines immutable receipt, stage, test, mutation, scope, reproduction, and verdict records. |
 | `engine` | Orchestrates verification, records stage evidence, applies fixed verdict rules, manages workspaces, and emits the canonical receipt. |
 | `parsers` | Securely parses Surefire and PIT XML reports into domain evidence. |
-| `receipt` | Calculates the receipt digest and renders the same `VerificationReceipt` as JSON, Markdown, and standalone escaped HTML. |
+| `receipt` | Sanitises all public evidence, calculates the receipt digest, and renders the same `VerificationReceipt` as JSON, Markdown, and standalone escaped HTML. |
 | `runner` | Applies patches with JGit and launches bounded Maven processes using argument arrays. |
-| `scope` | Parses unified-diff metadata and enforces expected, forbidden, file-count, line-count, binary, and traversal rules. |
+| `scope` | Strictly parses unified-diff metadata, compares pre/post-apply project trees, and enforces expected, forbidden, file-count, line-count, binary, symlink, traversal, and claim-mismatch rules. |
 | `web` | Exposes the one-page dashboard, allowlisted asynchronous run API, in-memory job registry, and receipt downloads. |
 
 The repository intentionally remains one Maven module. These are logical boundaries, not separately deployed services.
@@ -94,17 +96,17 @@ The web API never accepts a repository, raw patch, verifier source, filesystem p
 
 `PatchReceiptApplication` detects the `verify` and `init` commands and starts Spring without a web server. `verify` refuses to run unless `--allow-local-execution` is present because Maven projects and verifier tests can execute arbitrary code.
 
-`LocalCaseLoader` accepts only a Java 21 Maven manifest, requires a `pom.xml`, rejects symbolic links in accepted inputs, normalizes verifier paths, excludes generated and repository directories, limits input to 1,000 files and 8 MiB, and computes the same input hashes as the bundled loader. It does not make local code safe; it only constrains intake and requires an explicit acknowledgement.
+`LocalCaseLoader` accepts only a Java 21 Maven manifest, requires a `pom.xml`, rejects symbolic links in accepted inputs, normalises verifier paths, excludes generated and repository directories, limits input to 1,000 files and 8 MiB, and computes the same input hashes as the bundled loader. It does not make local code safe; it only constrains intake and requires an explicit acknowledgement.
 
 Both loaders produce a `VerificationCase`: a manifest, candidate metadata, bug report, unified diff, immutable project and verifier byte maps, and input hashes.
 
-## Optimized verification pipeline
+## Optimised verification pipeline
 
 A successful verification uses three child Maven invocations. Scope analysis, workspace setup, patch application, parsing, verdict calculation, digesting, and rendering run inside the PatchReceipt JVM.
 
 ### 1. Scope preflight
 
-`ScopeAnalyzer` parses the unified diff before any child process starts. It records paths, additions, deletions, and changed new-line numbers. Empty, malformed, binary, traversal, forbidden-path, over-file-limit, and over-line-limit patches produce hard violations. Unexpected production paths produce warnings.
+`ScopeAnalyzer` parses the unified diff before any child process starts. It requires corresponding `diff --git`, `---`, and `+++` headers, validates every hunk count, accepts blank context explicitly, and rejects unrecognized hunk content. It records claimed paths, additions, deletions, and changed new-line numbers. Empty, malformed, binary, traversal, forbidden-path, over-file-limit, and over-line-limit patches produce hard violations. Unexpected production paths produce warnings.
 
 A hard scope violation returns `REJECTED` immediately. A warning allows correctness verification to continue but prevents `VERIFIED`.
 
@@ -130,7 +132,13 @@ A compilation error, timeout, missing report, unrelated error, passing reproduct
 
 JGit initializes the fresh patched copy and applies the unified diff. An application failure is a mandatory rejection. Compilation is then exercised by the shared patched Maven test process.
 
-### 5. Maven process 2: shared patched tests
+### 5. Observed filesystem scope
+
+Immediately after JGit applies the patch, `ObservedScopeAnalyzer` compares the captured pristine tree with the patched tree using JGit line diffs. It discovers added, modified, and deleted files and independently calculates actual additions, deletions, and changed new-line numbers. Changed binary files, symbolic links, forbidden paths, hard size limits, and any disagreement with preflight claims are hard violations.
+
+This stage runs before patched code. A hard observed-scope violation returns `REJECTED` without executing patched tests. A permitted but unexpected production path remains a warning and prevents `VERIFIED`. Observed filesystem evidence—not the patch’s claims—feeds the receipt and PIT line filter.
+
+### 6. Maven process 2: shared patched tests
 
 The same sealed verifier pack is injected into the patched copy. One Maven invocation selects:
 
@@ -138,15 +146,15 @@ The same sealed verifier pack is injected into the patched copy. One Maven invoc
 - the unchanged original regression class; and
 - the independent dynamic edge-case class.
 
-Surefire XML is again parsed separately for all three evidence gates. The reproduction must now pass, every original regression must pass, and every generated edge case must pass. Sharing one Maven launch reduces startup cost without merging the evidence or verdict rules.
+Surefire XML is again parsed separately for all three evidence gates. The reproduction must now pass, every original regression must pass, and every generated edge case must pass. Skipped mandatory tests do not count as passing. Sharing one Maven launch reduces startup cost without merging the evidence or verdict rules.
 
-### 6. Maven process 3: targeted PIT
+### 7. Maven process 3: targeted PIT
 
-PIT runs only when all mandatory correctness gates are still clear. The bundled fixture targets `CheckoutCalculator`, uses one PIT thread, and produces XML and HTML reports. `PitestReportParser` intersects PIT findings with the changed line numbers reported by scope analysis.
+PIT runs only when all mandatory correctness gates are still clear. The engine invokes the version-pinned PIT Maven plugin, forwards the manifest’s target classes and tests, uses one worker for the bundled fixture, and produces XML and HTML reports. `PitestReportParser` intersects PIT findings with observed changed line numbers.
 
-The receipt reports viable changed-line mutants, killed and surviving mutants, uncovered mutants, errors/timeouts, score, threshold, and provenance. `VERIFIED` requires conclusive evidence, at least one changed-line mutant, and a score of at least 80%. Inconclusive or below-threshold mutation evidence yields `PARTIALLY_VERIFIED`, not `REJECTED`.
+The receipt reports process health, viable changed-line mutants, killed and surviving mutants, uncovered mutants, errors/timeouts, score, threshold, provenance, and changed production files that produced no viable mutants. `VERIFIED` requires a healthy PIT process, a complete parse, conclusive evidence for every changed production file, at least one changed-line mutant, and a score of at least 80%. Timeout, non-zero exit, missing/partial report, no-mutant file, or below-threshold evidence yields `PARTIALLY_VERIFIED`, never `VERIFIED`.
 
-### 7. Size check, verdict, and cleanup
+### 8. Size check, verdict, and cleanup
 
 After execution, PatchReceipt measures the run workspace against the manifest limit. Exceeding it is a blocking reason. `VerdictPolicy` then applies precedence:
 
@@ -162,14 +170,15 @@ No weighted score can override a mandatory failure. The workspace is deleted in 
 
 - schema, receipt, engine, case, and patch identifiers;
 - start, completion, and duration metadata;
+- one canonical plain summary and a canonical limitations list;
 - final verdict, blocking reasons, and warnings;
 - input hashes and toolchain details;
-- ordered `StageResult` records and sanitized stage logs;
+- ordered `StageResult` records and sanitised stage logs;
 - before/after reproduction evidence;
 - baseline and patched regression evidence;
 - independent edge-case evidence;
-- changed-line mutation evidence; and
-- scope paths, counts, changed lines, violations, and warnings.
+- changed-line mutation evidence and process health; and
+- observed-scope provenance, paths, counts, changed lines, violations, and warnings.
 
 `ReceiptDigestService` serializes that record with properties and map keys sorted, removes `receiptDigest`, and hashes the remaining canonical JSON bytes with SHA-256. It then returns a new receipt with the digest attached. The digest provides traceability and parity checking; it is not a signature and does not establish who produced the receipt.
 
@@ -194,7 +203,7 @@ The implemented endpoints are:
 - `GET /api/v1/runs/{runId}/receipt.html`; and
 - `GET /actuator/health`.
 
-`RunRegistry` stores jobs and receipts in memory. A single worker serializes Maven execution, three additional jobs may wait, and excess submissions receive HTTP 429. Completed jobs expire after 30 minutes when the registry next purges. The dashboard polls run state and follows the receipt links after completion.
+`RunRegistry` stores jobs and receipts in memory. A single worker serializes Maven execution, three additional jobs may wait, and excess submissions receive HTTP 429. Worker failures enter a terminal `FAILED` state with a safe public message; completed and failed jobs expire after 30 minutes. Mutable run-status responses use `Cache-Control: no-store`, and browser polling stops after three minutes.
 
 There is no database, account model, authentication, or durable run history.
 
@@ -219,7 +228,7 @@ The application targets Java 21 and pins Maven 3.9.16 through Maven Wrapper 3.3.
 - Scope analysis enforces declared paths and size, not semantic intent.
 - Input and receipt hashes are traceability evidence, not signatures.
 - State is in memory and disappears on restart.
-- There is currently a per-Maven-process timeout, but no separate whole-verification deadline.
+- Production runs have a 90-second whole-verification deadline, and each child process is bounded by both its configured stage limit and the remaining run time.
 - The current workspace byte limit is checked after child execution, not enforced as a live filesystem quota.
 
 See [`SECURITY.md`](SECURITY.md) for the threat model and residual risks.

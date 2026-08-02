@@ -1,0 +1,89 @@
+{"kind":"deck","id":"pr/ouxg7f","name":"Deck"}
+{"kind":"layout","layoutId":"/ppt/slideMasters/slideMaster1.xml","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout1.xml","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/y90nupkv","slide":1,"title":"PatchReceipt","textShapes":3}
+{"kind":"textbox","id":"sh/65g3298r","slide":1,"name":"Title-3-1","text":"PatchReceipt","textPreview":"PatchReceipt","textChars":12,"textLines":1,"bbox":[41.33,182.55,992,261.57]}
+{"kind":"textbox","id":"sh/547294r6","slide":1,"name":"Subtitle-4-2","text":"AI writes the patch.\nPatchReceipt proves whether it deserves to ship.","textPreview":"AI writes the patch. | PatchReceipt proves whether it deserves to ship.","textChars":69,"textLines":2,"bbox":[41.33,497.87,598.67,113.41]}
+{"kind":"textbox","id":"sh/k3yl0zql","slide":1,"name":"Subtitle-4-3","text":"CHATGPT CODEX HACKATHON 2026","textPreview":"CHATGPT CODEX HACKATHON 2026","textChars":28,"textLines":1,"bbox":[41.33,41.18,598.67,68.15]}
+{"kind":"shape","id":"sh/7qp4be9c","slide":1,"name":"title-accent","bbox":[41,454,930,14]}
+{"kind":"notes","id":"nt/y90nupkv","slide":1,"text":"AI coding systems are fast at producing patches. PatchReceipt supplies the missing deterministic evidence layer: proof before merge."}
+{"kind":"slide","id":"sl/hwbqtkby","slide":2,"title":"02","textShapes":7}
+{"kind":"textbox","id":"sh/mtwrmxg7","slide":2,"name":"Google-Shape-532-p58-2","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1184.18,659.24,54.48,25.33]}
+{"kind":"textbox","id":"sh/9072xkry","slide":2,"name":"Google-Shape-533-p58-3","text":"A green test suite is not proof","textPreview":"A green test suite is not proof","textChars":31,"textLines":1,"bbox":[41.33,36.17,1197.33,67.64]}
+{"kind":"shape","id":"sh/ozy1ofad","slide":2,"name":"Rounded-Rectangle-1-4","bbox":[41.68,350.56,580.99,138.67]}
+{"kind":"textbox","id":"sh/b29kza94","slide":2,"name":"Content-Placeholder-10-5","text":"Ordinary CI","textPreview":"Ordinary CI","textChars":11,"textLines":1,"bbox":[72.89,376.69,523.56,92.16]}
+{"kind":"textbox","id":"sh/a10jqpsj","slide":2,"name":"Content-Placeholder-15-6","text":"✓ Existing tests pass\n✗ Bug may not be reproduced\n✗ No proof of test strength","textPreview":"✓ Existing tests pass | ✗ Bug may not be reproduced | ✗ No proof of test strength","textChars":77,"textLines":3,"bbox":[72.89,506.94,549.78,102.67]}
+{"kind":"shape","id":"sh/x4r21kru","slide":2,"name":"Rounded-Rectangle-7-7","bbox":[657.3,350.56,580.99,138.67]}
+{"kind":"textbox","id":"sh/w3i1sfa9","slide":2,"name":"Content-Placeholder-10-8","text":"PatchReceipt","textPreview":"PatchReceipt","textChars":12,"textLines":1,"bbox":[688.51,376.69,523.56,92.16]}
+{"kind":"textbox","id":"sh/r65knqtk","slide":2,"name":"Content-Placeholder-15-9","text":"✓ Proves before → after\n✓ Sealed edge cases + PIT\n✓ Scope and evidence receipt","textPreview":"✓ Proves before → after | ✓ Sealed edge cases + PIT | ✓ Scope and evidence receipt","textChars":78,"textLines":3,"bbox":[688.51,506.94,549.78,102.67]}
+{"kind":"textbox","id":"sh/q5wjelsz","slide":2,"name":"Content-Placeholder-15-10","text":"THE GAP\nAI patches can satisfy the reported example while failing retries, casing, mutation pressure, or scope policy.\nReviewers need evidence that is reproducible, independent, and explainable.","textPreview":"THE GAP | AI patches can satisfy the reported example while failing retries, casing, mutation pressure, or scope policy. | Reviewers need...","textChars":194,"textLines":3,"bbox":[42.09,121.52,1197.33,171.05]}
+{"kind":"shape","id":"sh/ove9o7yd","slide":2,"name":"ci-warning","bbox":[42,351,581,10]}
+{"kind":"shape","id":"sh/9wnqhczy","slide":2,"name":"receipt-proof","bbox":[657,351,581,10]}
+{"kind":"notes","id":"nt/hwbqtkby","slide":2,"text":"Frame the problem around evidence quality, not distrust of AI. Existing tests are necessary, but they are not independent proof of the patch.\n\n[Sources]\n- https://pitest.org/\n[/Sources]"}
+{"kind":"slide","id":"sl/ofy9wn61","slide":3,"title":"03","textShapes":6}
+{"kind":"textbox","id":"sh/x8nml0ra","slide":3,"name":"Google-Shape-532-p58-2","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1184.18,659.24,54.48,25.33]}
+{"kind":"textbox","id":"sh/cza94vmx","slide":3,"name":"Google-Shape-533-p58-3","text":"One bug. Three plausible patches. Three defensible verdicts.","textPreview":"One bug. Three plausible patches. Three defensible verdicts.","textChars":60,"textLines":1,"bbox":[41.33,36.17,1197.33,134.7]}
+{"kind":"shape","id":"sh/d0jax03i","slide":3,"name":"Rounded-Rectangle-9-4","bbox":[452.38,353.33,374.67,276]}
+{"kind":"shape","id":"sh/298ryl4v","slide":3,"name":"Rounded-Rectangle-10-5","bbox":[864,353.33,374.67,276]}
+{"kind":"textbox","id":"sh/3ah8rqlg","slide":3,"name":"Content-Placeholder-9-6","text":"PARTIAL\nCorrect result, but an unrelated production file changed.","textPreview":"PARTIAL | Correct result, but an unrelated production file changed.","textChars":65,"textLines":2,"bbox":[485.23,435.29,309.64,150.43]}
+{"kind":"textbox","id":"sh/obq90bml","slide":3,"name":"Content-Placeholder-10-7","text":"VERIFIED\n9/9 edge cases, 5/5 mutants, clean observed scope.","textPreview":"VERIFIED | 9/9 edge cases, 5/5 mutants, clean observed scope.","textChars":59,"textLines":2,"bbox":[896.18,435.29,309.64,150.43]}
+{"kind":"shape","id":"sh/pcjqtg36","slide":3,"name":"Google-Shape-340-p61-8","bbox":[485.84,387.83,24.55,24.54]}
+{"kind":"shape","id":"sh/m5cra54z","slide":3,"name":"Google-Shape-340-p61-9","bbox":[895.88,387.83,24.55,24.54]}
+{"kind":"shape","id":"sh/n6ls3alk","slide":3,"name":"Rounded-Rectangle-5-10","bbox":[40.77,353.33,374.67,276]}
+{"kind":"textbox","id":"sh/n2l4fq98","slide":3,"name":"Content-Placeholder-9-11","text":"REJECTED\ndistinct() passes the obvious case; 3 edge cases expose it.","textPreview":"REJECTED | distinct() passes the obvious case; 3 edge cases expose it.","textChars":68,"textLines":2,"bbox":[73.61,435.29,309.64,150.43]}
+{"kind":"shape","id":"sh/m1c3mlsn","slide":3,"name":"Google-Shape-340-p61-12","bbox":[74.23,387.83,24.55,24.54]}
+{"kind":"textbox","id":"sh/943mhgre","slide":3,"name":"Content-Placeholder-15-13","text":"BUNDLED CHECKOUT BUG\nRetried checkout requests must apply each case-insensitive coupon code once.\nThe verifier pack is sealed before candidates run.","textPreview":"BUNDLED CHECKOUT BUG | Retried checkout requests must apply each case-insensitive coupon code once. | The verifier pack is sealed before ...","textChars":148,"textLines":3,"bbox":[41.33,152.29,1197.33,171.05]}
+{"kind":"shape","id":"sh/83ulovat","slide":3,"name":"card-stripe-40.77","bbox":[40.77,353.33,374.67,10]}
+{"kind":"shape","id":"sh/v6l4jq94","slide":3,"name":"card-stripe-452.38","bbox":[452.38,353.33,374.67,10]}
+{"kind":"shape","id":"sh/a5c3ql8z","slide":3,"name":"card-stripe-864","bbox":[864,353.33,374.67,10]}
+{"kind":"notes","id":"nt/ofy9wn61","slide":3,"text":"Run the plausible candidate live. The baseline bug is reproduced and the apparent fix passes, but independent case-variant and conflicting-value checks fail. Then open the robust receipt.\n\n[Sources]\n- Local evidence: target/evaluation-receipts/*.json\n[/Sources]"}
+{"kind":"slide","id":"sl/jyx0ra1s","slide":4,"title":"04","textShapes":8}
+{"kind":"textbox","id":"sh/a5kr2xg3","slide":4,"name":"Slide-Number-Placeholder-3-2","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1184.18,659.24,54.48,25.33]}
+{"kind":"textbox","id":"sh/1cj2d8b6","slide":4,"name":"Title-10-3","text":"One ordered proof pipeline, not a trust score","textPreview":"One ordered proof pipeline, not a trust score","textChars":45,"textLines":1,"bbox":[41.33,36.12,1197.33,109.97]}
+{"kind":"shape","id":"sh/18nu50nu","slide":4,"name":"Google-Shape-2259-p159-4","bbox":[35.46,354.2,1203,0.03]}
+{"kind":"shape","id":"sh/rm1k7yt4","slide":4,"name":"Google-Shape-2260-p159-5","bbox":[35.46,348.58,11.24,11.24]}
+{"kind":"shape","id":"sh/ql8jytsj","slide":4,"name":"Google-Shape-2261-p159-6","bbox":[446.38,348.58,11.24,11.24]}
+{"kind":"shape","id":"sh/doj29oba","slide":4,"name":"Google-Shape-2262-p159-7","bbox":[858.38,348.58,11.24,11.24]}
+{"kind":"textbox","id":"sh/sna103ap","slide":4,"name":"Content-Placeholder-15-8","text":"BEFORE","textPreview":"BEFORE","textChars":6,"textLines":1,"bbox":[41.33,298.51,169.33,27.55]}
+{"kind":"textbox","id":"sh/3ihk3et8","slide":4,"name":"Content-Placeholder-15-9","text":"AFTER","textPreview":"AFTER","textChars":5,"textLines":1,"bbox":[450.83,298.51,169.33,27.55]}
+{"kind":"textbox","id":"sh/ih8ju9sn","slide":4,"name":"Content-Placeholder-15-10","text":"DECIDE","textPreview":"DECIDE","textChars":6,"textLines":1,"bbox":[863.33,298.51,169.33,27.55]}
+{"kind":"textbox","id":"sh/kbm987y5","slide":4,"name":"Text-Placeholder-16-11","text":"Challenge\nRegression + 9 edges\nChanged-line mutation","textPreview":"Challenge | Regression + 9 edges | Changed-line mutation","textChars":52,"textLines":3,"bbox":[453.24,401.33,331.35,166.54]}
+{"kind":"textbox","id":"sh/5cva1cfq","slide":4,"name":"Text-Placeholder-16-12","text":"Reproduce\nHealthy baseline\nExpected assertion fails","textPreview":"Reproduce | Healthy baseline | Expected assertion fails","textChars":51,"textLines":3,"bbox":[41.98,401.33,331.35,166.54]}
+{"kind":"textbox","id":"sh/i94r6xgz","slide":4,"name":"Text-Placeholder-16-13","text":"Receipt\nObserved scope + hashes\nHTML · Markdown · JSON","textPreview":"Receipt | Observed scope + hashes | HTML · Markdown · JSON","textChars":54,"textLines":3,"bbox":[858.57,401.33,331.35,166.54]}
+{"kind":"shape","id":"sh/jadsz2xk","slide":4,"name":"pipeline-accent-35.46","bbox":[31.46,344.5,19,19]}
+{"kind":"shape","id":"sh/w72947yt","slide":4,"name":"pipeline-accent-446.38","bbox":[442.38,344.5,19,19]}
+{"kind":"shape","id":"sh/x8vaxsfe","slide":4,"name":"pipeline-accent-858.38","bbox":[854.38,344.5,19,19]}
+{"kind":"notes","id":"nt/jyx0ra1s","slide":4,"text":"The verdict is gate-based. A correctness or safety failure always rejects. Partial means correctness passed but confidence is incomplete. Verified requires every mandatory evidence item.\n\n[Sources]\n- Local architecture: docs/ARCHITECTURE.md\n[/Sources]"}
+{"kind":"slide","id":"sl/i107q5of","slide":5,"title":"05","textShapes":7}
+{"kind":"textbox","id":"sh/n6dcr65o","slide":5,"name":"Slide-Number-Placeholder-1-2","text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1184.17,659.17,54.5,25.33]}
+{"kind":"textbox","id":"sh/dgbulwnm","slide":5,"name":"Title-2-3","text":"Useful offline. Honest about its safety boundary.","textPreview":"Useful offline. Honest about its safety boundary.","textChars":49,"textLines":1,"bbox":[41.33,36.12,1197.33,109.97]}
+{"kind":"textbox","id":"sh/cf2tcr61","slide":5,"name":"Content-Placeholder-9-4","text":"No runtime AI\nJGit, Maven, JUnit, PIT and fixed verdict rules. No key. No credits.","textPreview":"No runtime AI | JGit, Maven, JUnit, PIT and fixed verdict rules. No key. No credits.","textChars":82,"textLines":2,"bbox":[41.33,213.33,581.33,172.5]}
+{"kind":"textbox","id":"sh/z2tcnm5s","slide":5,"name":"Content-Placeholder-10-5","text":"Allowlisted hosting\nPublic API accepts only bundled caseId + patchId pairs.","textPreview":"Allowlisted hosting | Public API accepts only bundled caseId + patchId pairs.","textChars":75,"textLines":2,"bbox":[656.86,213.33,581.33,172.5]}
+{"kind":"textbox","id":"sh/yhkbe1o7","slide":5,"name":"Content-Placeholder-9-6","text":"Bounded execution\nSingle worker, queue cap, timeouts, memory and log limits.","textPreview":"Bounded execution | Single worker, queue cap, timeouts, memory and log limits.","textChars":76,"textLines":2,"bbox":[41.33,421.73,581.33,172.51]}
+{"kind":"textbox","id":"sh/l4bupwny","slide":5,"name":"Content-Placeholder-10-7","text":"Trusted local CLI\nRefuses to execute unless the user passes an explicit safety flag.","textPreview":"Trusted local CLI | Refuses to execute unless the user passes an explicit safety flag.","textChars":84,"textLines":2,"bbox":[656.86,421.73,581.33,172.51]}
+{"kind":"textbox","id":"sh/032tgr6d","slide":5,"name":"section-NO API KEY","text":"NO API KEY","textPreview":"NO API KEY","textChars":10,"textLines":1,"bbox":[1085,42,135,30]}
+{"kind":"notes","id":"nt/i107q5of","slide":5,"text":"Do not describe the container as an arbitrary-code sandbox. The hosted safety claim comes primarily from executing only bundled, hash-allowlisted fixtures.\n\n[Sources]\n- Local threat model: docs/SECURITY.md\n[/Sources]"}
+{"kind":"slide","id":"sl/x8f69ofe","slide":6,"title":"06","textShapes":10}
+{"kind":"shape","id":"sh/i54bylor","slide":6,"name":"Rounded-Rectangle-5-1","bbox":[41.33,317.33,374.67,312]}
+{"kind":"shape","id":"sh/yhg7epsj","slide":6,"name":"Rounded-Rectangle-6-2","bbox":[452.67,317.33,374.67,312]}
+{"kind":"shape","id":"sh/zi98nu94","slide":6,"name":"Rounded-Rectangle-7-3","bbox":[864.28,317.33,374.67,312]}
+{"kind":"textbox","id":"sh/87ipkzal","slide":6,"name":"Slide-Number-Placeholder-1-4","text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1184.18,659.24,54.48,25.33]}
+{"kind":"textbox","id":"sh/98rqt4r6","slide":6,"name":"Title-2-5","text":"Measured evidence from the six-patch corpus","textPreview":"Measured evidence from the six-patch corpus","textChars":43,"textLines":1,"bbox":[41.33,36.12,1197.33,109.97]}
+{"kind":"textbox","id":"sh/ml07i9sv","slide":6,"name":"Content-Placeholder-9-6","text":"expected verdicts","textPreview":"expected verdicts","textChars":17,"textLines":1,"bbox":[73.74,514.5,309.67,86]}
+{"kind":"textbox","id":"sh/7m98ru9g","slide":6,"name":"Content-Placeholder-10-7","text":"final packaged run","textPreview":"final packaged run","textChars":18,"textLines":1,"bbox":[896.78,514.5,309.67,86]}
+{"kind":"textbox","id":"sh/oryp8fah","slide":6,"name":"Content-Placeholder-11-8","text":"unsafe VERIFIED","textPreview":"unsafe VERIFIED","textChars":15,"textLines":1,"bbox":[485.17,514.5,309.67,86]}
+{"kind":"textbox","id":"sh/pc76hkr2","slide":6,"name":"Content-Placeholder-9-9","text":"6 / 6","textPreview":"6 / 6","textChars":5,"textLines":1,"bbox":[73.74,360,308.67,142.71]}
+{"kind":"textbox","id":"sh/h4bupgn6","slide":6,"name":"Content-Placeholder-9-10","text":"0","textPreview":"0","textChars":1,"textLines":1,"bbox":[484.3,360,308.67,142.71]}
+{"kind":"textbox","id":"sh/w32twb6l","slide":6,"name":"Content-Placeholder-9-11","text":"25.9 s","textPreview":"25.9 s","textChars":6,"textLines":1,"bbox":[898.94,360,308.67,142.71]}
+{"kind":"textbox","id":"sh/v2tcn650","slide":6,"name":"Content-Placeholder-15-12","text":"LOCAL EVALUATION\nTwo robust patches, one drifting patch, one edge-case trap, one build bypass, and one compile break.","textPreview":"LOCAL EVALUATION | Two robust patches, one drifting patch, one edge-case trap, one build bypass, and one compile break.","textChars":117,"textLines":2,"bbox":[41.33,119.51,1197.33,167.92]}
+{"kind":"textbox","id":"sh/u1kbu1ov","slide":6,"name":"section-MACHINE READABLE","text":"MACHINE READABLE","textPreview":"MACHINE READABLE","textChars":16,"textLines":1,"bbox":[1085,42,135,30]}
+{"kind":"shape","id":"sh/5svutgni","slide":6,"name":"metric-accent-41.33","bbox":[41.33,317.33,374.67,10]}
+{"kind":"shape","id":"sh/47mt0b6x","slide":6,"name":"metric-accent-452.67","bbox":[452.67,317.33,374.67,10]}
+{"kind":"shape","id":"sh/j6dcr65c","slide":6,"name":"metric-accent-864.28","bbox":[864.28,317.33,374.67,10]}
+{"kind":"notes","id":"nt/x8f69ofe","slide":6,"text":"These figures come from the frozen Java 21 evaluation. The 25.9-second figure is the final packaged public-candidate run (25.943 seconds measured); deployed p95 remains pending until the service is hosted.\n\n[Sources]\n- Local evidence: docs/EVALUATION.md\n- Local evidence: docs/evidence/evaluation-summary.json\n[/Sources]"}
+{"kind":"slide","id":"sl/gnmp4jqx","slide":7,"title":"Evidence","textShapes":3}
+{"kind":"textbox","id":"sh/zedcfa9g","slide":7,"name":"Title-3-1","text":"Evidence\nbefore merge.","textPreview":"Evidence | before merge.","textChars":22,"textLines":2,"bbox":[41.33,182.55,992,261.57]}
+{"kind":"textbox","id":"sh/cb2tkvap","slide":7,"name":"Subtitle-4-2","text":"Deterministic verification\nNo runtime API required\nReceipts judges can inspect","textPreview":"Deterministic verification | No runtime API required | Receipts judges can inspect","textChars":78,"textLines":3,"bbox":[41.33,522.13,374.67,113.41]}
+{"kind":"textbox","id":"sh/dcbud0ra","slide":7,"name":"Subtitle-4-3","text":"BUILT WITH CODEX","textPreview":"BUILT WITH CODEX","textChars":16,"textLines":1,"bbox":[41.33,41.18,169.33,68.15]}
+{"kind":"shape","id":"sh/ydkbm5sv","slide":7,"name":"close-accent","bbox":[41,461,860,14]}
+{"kind":"notes","id":"nt/gnmp4jqx","slide":7,"text":"Close on the proposition. Codex planned, implemented, tested, debugged, evaluated, documented and prepared the deployment. Claude is used only as an independent review channel through an auditable handoff.\n\n[Sources]\n- Local evidence: CODEX_JOURNAL.md\n- Local handoff: CLAUDE_HANDOFF.md\n[/Sources]"}

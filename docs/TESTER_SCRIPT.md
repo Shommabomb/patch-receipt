@@ -69,7 +69,7 @@ Do not show this section to testers before the session.
 
 | Assigned candidate | Expected decision | Sufficient plain-language explanation |
 |---|---|---|
-| First: plausible object-level deduplication | Do not ship | The independent correctness checks found behavior the patch did not fix. |
+| First: plausible object-level deduplication | Do not ship | The independent correctness checks found behaviour the patch did not fix. |
 | Second: correct fix with unrelated drift | Require human review before shipping | The fix passed correctness checks, but it changed an unexpected production file. |
 | Third: minimal robust fix | Reasonable to ship on the evidence shown | The bug check, original tests, independent edge cases, scope check, and mutation check passed. |
 

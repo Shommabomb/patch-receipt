@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.net.URI;
 import java.util.List;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,13 +52,16 @@ public final class RunApiController {
         RunSnapshot snapshot = runs.start(request.caseId(), request.patchId());
         return ResponseEntity
                 .accepted()
+                .cacheControl(CacheControl.noStore())
                 .location(URI.create("/api/v1/runs/" + snapshot.runId()))
                 .body(snapshot);
     }
 
     @GetMapping("/runs/{runId}")
-    public RunSnapshot find(@PathVariable String runId) {
-        return runs.find(runId);
+    public ResponseEntity<RunSnapshot> find(@PathVariable String runId) {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(runs.find(runId));
     }
 
     public record StartRunRequest(

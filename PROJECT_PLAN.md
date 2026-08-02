@@ -22,18 +22,19 @@ The primary hackathon track is Agentic Coding and the secondary angle is Buildin
 2. Parse the patch and enforce hard scope policy before execution.
 3. Run original baseline regressions.
 4. Inject the sealed reproduction test and prove its expected assertion fails.
-5. Create a fresh workspace, apply and compile the patch.
-6. Run original regressions unchanged.
-7. Inject the same reproduction and edge-case tests.
-8. Prove the reproduction passes and run the generated edge-case matrix.
-9. Run PIT against changed production classes and score viable mutations on changed lines.
-10. Apply the fixed verdict policy and render all receipt formats.
+5. Create a fresh workspace and apply the patch.
+6. Compare the pristine and patched trees, reject hidden or mismatched changes, and make observed filesystem evidence authoritative.
+7. Run original regressions unchanged.
+8. Inject the same reproduction and edge-case tests.
+9. Prove the reproduction passes and run the generated edge-case matrix.
+10. Run a version-pinned PIT process against manifest targets and score viable mutations on observed changed lines.
+11. Apply the fixed verdict policy and render receipt schema v2 in all formats.
 
 ## Verdict policy
 
 - `REJECTED`: invalid reproduction, apply/compile failure, post-patch reproduction failure, regression or edge-case failure, hard scope violation, or required-stage error/timeout.
-- `PARTIALLY_VERIFIED`: all correctness gates pass but soft drift exists or mutation evidence is unavailable, inconclusive, or below 80%.
-- `VERIFIED`: all correctness gates pass, scope is clean, mutation ran successfully with at least one viable changed-line mutant, and the changed-line score is at least 80%.
+- `PARTIALLY_VERIFIED`: all correctness gates pass but soft drift exists, a changed production file has no viable mutants, or mutation evidence is unhealthy, unavailable, inconclusive, or below 80%.
+- `VERIFIED`: all correctness gates pass, observed scope is clean, the mutation process and report are healthy, every changed production file has viable evidence, and the changed-line score is at least 80%.
 
 ## Architecture
 
@@ -41,7 +42,7 @@ A single Maven module contains logical packages for domain types, case packs, sc
 
 ## Safety
 
-The public app accepts only bundled case and patch IDs. It does not accept source, diffs, commands, paths, URLs, or credentials. Child processes are bounded, logs are capped and sanitized, workspaces are deleted, execution is offline in the production container, and only one verification job runs at a time.
+The public app accepts only bundled case and patch IDs. It does not accept source, diffs, commands, paths, URLs, or credentials. Child processes are bounded, Maven runs in offline mode, logs are capped and sanitised, workspaces are deleted, and only one verification job runs at a time. The container does not yet enforce a network-egress boundary, so the project does not claim that all child code is network-isolated.
 
 ## Delivery order
 

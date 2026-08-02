@@ -49,6 +49,7 @@ class RunApiControllerTests {
                 .andExpect(status().isAccepted())
                 .andExpect(header().string(
                         "Location", "/api/v1/runs/run-123"))
+                .andExpect(header().string("Cache-Control", "no-store"))
                 .andExpect(jsonPath("$.state").value("QUEUED"));
     }
 
@@ -85,6 +86,11 @@ class RunApiControllerTests {
                 .thenThrow(new NoSuchElementException("Unknown or expired run: missing"));
         mvc.perform(get("/api/v1/runs/missing"))
                 .andExpect(status().isNotFound());
+
+        when(runs.find("run-123")).thenReturn(queued());
+        mvc.perform(get("/api/v1/runs/run-123"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "no-store"));
     }
 
     private RunSnapshot queued() {
@@ -98,7 +104,11 @@ class RunApiControllerTests {
                 null,
                 null,
                 null,
+                null,
+                null,
                 List.of(),
+                List.of(),
+                null,
                 null);
     }
 }

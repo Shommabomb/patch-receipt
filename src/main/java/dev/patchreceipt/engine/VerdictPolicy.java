@@ -23,8 +23,16 @@ public final class VerdictPolicy {
                     deduplicate(finalWarnings));
         }
 
-        if (mutation == null || !mutation.conclusive()) {
+        if (mutation == null || !mutation.processHealthy()) {
+            finalWarnings.add("Mutation process did not complete successfully");
+        } else if (!mutation.conclusive()) {
             finalWarnings.add("Mutation evidence is inconclusive");
+        } else if (mutation.changedLineMutants() < mutation.requiredChangedLineMutants()) {
+            finalWarnings.add(
+                    "Too few viable changed-line mutants were generated for full verification");
+        } else if (!mutation.filesWithoutMutants().isEmpty()) {
+            finalWarnings.add(
+                    "Some changed production files lack viable changed-line mutation evidence");
         } else if (mutation.changedLineScore() < mutation.requiredScore()) {
             finalWarnings.add("Changed-line mutation score is below the required threshold");
         }

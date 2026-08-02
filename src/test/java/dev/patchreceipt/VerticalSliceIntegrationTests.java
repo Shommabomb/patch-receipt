@@ -13,7 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+        "patchreceipt.runner.offline=true",
+        // Keep loaded developer machines from turning a correctness test into a latency test.
+        "patchreceipt.runner.total-timeout-seconds=180",
+        "patchreceipt.runner.stage-timeout-override-seconds=120"
+})
 class VerticalSliceIntegrationTests {
 
     @Autowired

@@ -19,7 +19,11 @@ public final class ScopeAnalyzer {
     private static final Pattern DIFF_HEADER =
             Pattern.compile("^diff --git a/(.+) b/(.+)$");
     private static final Pattern HUNK_HEADER =
-            Pattern.compile("^@@ -\\d+(?:,\\d+)? \\+(\\d+)(?:,(\\d+))? @@.*$");
+            Pattern.compile("^@@ -(\\d+)(?:,(\\d+))? \\+(\\d+)(?:,(\\d+))? @@.*$");
+    private static final Pattern OLD_FILE_HEADER =
+            Pattern.compile("^--- (?:a/(.+)|/dev/null)(?:\\t.*)?$");
+    private static final Pattern NEW_FILE_HEADER =
+            Pattern.compile("^\\+\\+\\+ (?:b/(.+)|/dev/null)(?:\\t.*)?$");
 
     public ScopeEvidence analyze(String patch, CaseManifest.Scope policy) {
         List<String> hardViolations = new ArrayList<>();
@@ -38,27 +42,93 @@ public final class ScopeAnalyzer {
         MutableChangedFile current = null;
         boolean inHunk = false;
         int newLine = 0;
+        int expectedOldLines = 0;
+        int expectedNewLines = 0;
+        int observedOldLines = 0;
+        int observedNewLines = 0;
 
-        for (String line : patch.split("\\R", -1)) {
+        for (String line : patchLines(patch)) {
             Matcher diffMatcher = DIFF_HEADER.matcher(line);
             if (diffMatcher.matches()) {
+                validateHunk(
+                        current,
+                        inHunk,
+                        expectedOldLines,
+                        expectedNewLines,
+                        observedOldLines,
+                        observedNewLines,
+                        hardViolations);
+                validateFileHeaders(current, hardViolations);
                 String oldPath = normalize(diffMatcher.group(1));
                 String newPath = normalize(diffMatcher.group(2));
-                if (escapesRoot(oldPath) || escapesRoot(newPath)) {
+                boolean invalidPath = escapesRoot(oldPath) || escapesRoot(newPath);
+                if (invalidPath) {
                     hardViolations.add("Patch path escapes project root: " + newPath);
                 }
-                current = files.computeIfAbsent(newPath, MutableChangedFile::new);
+                if (containsVerifierMetadata(oldPath) || containsVerifierMetadata(newPath)) {
+                    hardViolations.add("Verifier metadata path changed: " + newPath);
+                }
+                if (!invalidPath && !oldPath.equals(newPath)) {
+                    hardViolations.add(
+                            "File renames are not supported: %s -> %s"
+                                    .formatted(oldPath, newPath));
+                }
+                current = files.computeIfAbsent(
+                        newPath,
+                        ignored -> new MutableChangedFile(oldPath, newPath));
                 inHunk = false;
                 continue;
             }
 
+            if (!inHunk && current != null) {
+                Matcher oldHeader = OLD_FILE_HEADER.matcher(line);
+                if (oldHeader.matches()) {
+                    current.oldHeaders++;
+                    String headerPath = oldHeader.group(1);
+                    if (headerPath != null
+                            && !normalize(headerPath).equals(current.oldPath)) {
+                        hardViolations.add(
+                                "Old file header does not match diff header: " + headerPath);
+                    }
+                    continue;
+                }
+                Matcher newHeader = NEW_FILE_HEADER.matcher(line);
+                if (newHeader.matches()) {
+                    current.newHeaders++;
+                    String headerPath = newHeader.group(1);
+                    if (headerPath != null
+                            && !normalize(headerPath).equals(current.path)) {
+                        hardViolations.add(
+                                "New file header does not match diff header: " + headerPath);
+                    }
+                    continue;
+                }
+            }
+
             Matcher hunkMatcher = HUNK_HEADER.matcher(line);
             if (hunkMatcher.matches()) {
+                validateHunk(
+                        current,
+                        inHunk,
+                        expectedOldLines,
+                        expectedNewLines,
+                        observedOldLines,
+                        observedNewLines,
+                        hardViolations);
                 if (current == null) {
                     hardViolations.add("Hunk appears before a file header");
                     continue;
                 }
-                newLine = Integer.parseInt(hunkMatcher.group(1));
+                if (current.oldHeaders != 1 || current.newHeaders != 1) {
+                    hardViolations.add(
+                            "Hunk appears before complete file headers: " + current.path);
+                }
+                expectedOldLines = count(hunkMatcher.group(2));
+                expectedNewLines = count(hunkMatcher.group(4));
+                observedOldLines = 0;
+                observedNewLines = 0;
+                newLine = Integer.parseInt(hunkMatcher.group(3));
+                current.hunks++;
                 inHunk = true;
                 continue;
             }
@@ -66,20 +136,34 @@ public final class ScopeAnalyzer {
             if (!inHunk || current == null) {
                 continue;
             }
-            if (line.startsWith("+") && !line.startsWith("+++")) {
+            if (line.startsWith("+")) {
                 current.additions++;
                 current.changedLines.add(newLine);
                 newLine++;
-            } else if (line.startsWith("-") && !line.startsWith("---")) {
+                observedNewLines++;
+            } else if (line.startsWith("-")) {
                 current.deletions++;
-            } else if (line.startsWith(" ")) {
+                observedOldLines++;
+            } else if (line.startsWith(" ") || line.isEmpty()) {
                 newLine++;
+                observedOldLines++;
+                observedNewLines++;
             } else if (line.startsWith("\\ No newline")) {
                 // Metadata; no line movement.
             } else {
+                hardViolations.add("Unparseable line in hunk for " + current.path);
                 inHunk = false;
             }
         }
+        validateHunk(
+                current,
+                inHunk,
+                expectedOldLines,
+                expectedNewLines,
+                observedOldLines,
+                observedNewLines,
+                hardViolations);
+        validateFileHeaders(current, hardViolations);
 
         if (files.isEmpty()) {
             hardViolations.add("Patch contains no unified diff file headers");
@@ -94,7 +178,10 @@ public final class ScopeAnalyzer {
             boolean expected = policy.expectedPaths().contains(file.path);
             boolean forbidden = policy.forbiddenGlobs().stream()
                     .anyMatch(glob -> matchesGlob(glob, file.path));
-            if (forbidden) {
+            if (containsVerifierMetadata(file.path)) {
+                forbidden = true;
+                hardViolations.add("Verifier metadata path changed: " + file.path);
+            } else if (forbidden) {
                 hardViolations.add("Forbidden path changed: " + file.path);
             } else if (!expected) {
                 warnings.add("Unexpected path changed: " + file.path);
@@ -113,6 +200,7 @@ public final class ScopeAnalyzer {
         }
 
         return new ScopeEvidence(
+                "PATCH_PREFLIGHT",
                 files.size(), additions, deletions, changedFiles,
                 distinct(hardViolations), distinct(warnings));
     }
@@ -151,17 +239,78 @@ public final class ScopeAnalyzer {
                 || List.of(path.split("/")).contains("..");
     }
 
+    private static boolean containsVerifierMetadata(String path) {
+        return List.of(normalize(path).split("/")).contains(".git");
+    }
+
     private static List<String> distinct(List<String> values) {
         return List.copyOf(new LinkedHashSet<>(values));
     }
 
+    private static List<String> patchLines(String patch) {
+        List<String> lines = new ArrayList<>(List.of(patch.split("\\R", -1)));
+        if (!lines.isEmpty()
+                && lines.getLast().isEmpty()
+                && (patch.endsWith("\n") || patch.endsWith("\r"))) {
+            lines.removeLast();
+        }
+        return lines;
+    }
+
+    private static int count(String value) {
+        return value == null ? 1 : Integer.parseInt(value);
+    }
+
+    private static void validateHunk(
+            MutableChangedFile current,
+            boolean inHunk,
+            int expectedOldLines,
+            int expectedNewLines,
+            int observedOldLines,
+            int observedNewLines,
+            List<String> hardViolations) {
+        if (!inHunk || current == null) {
+            return;
+        }
+        if (expectedOldLines != observedOldLines || expectedNewLines != observedNewLines) {
+            hardViolations.add(
+                    "Hunk line counts do not match header for %s: expected -%d/+%d but observed -%d/+%d"
+                            .formatted(
+                                    current.path,
+                                    expectedOldLines,
+                                    expectedNewLines,
+                                    observedOldLines,
+                                    observedNewLines));
+        }
+    }
+
+    private static void validateFileHeaders(
+            MutableChangedFile current,
+            List<String> hardViolations) {
+        if (current == null) {
+            return;
+        }
+        if (current.oldHeaders != 1 || current.newHeaders != 1) {
+            hardViolations.add(
+                    "Diff file must contain exactly one --- and one +++ header: " + current.path);
+        }
+        if (current.hunks == 0) {
+            hardViolations.add("Diff file contains no hunks: " + current.path);
+        }
+    }
+
     private static final class MutableChangedFile {
+        private final String oldPath;
         private final String path;
         private int additions;
         private int deletions;
+        private int oldHeaders;
+        private int newHeaders;
+        private int hunks;
         private final Set<Integer> changedLines = new LinkedHashSet<>();
 
-        private MutableChangedFile(String path) {
+        private MutableChangedFile(String oldPath, String path) {
+            this.oldPath = oldPath;
             this.path = path;
         }
     }

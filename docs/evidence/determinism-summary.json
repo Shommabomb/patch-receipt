@@ -1,9 +1,13 @@
 {
-  "schemaVersion": 1,
-  "recordedAt": "2026-07-25",
+  "schemaVersion": 2,
+  "recordedAt": "2026-07-27",
   "patchId": "minimal-robust",
+  "patchFile": "patches/minimal-robust-set-based.patch",
+  "patchSha256": "9a305bedf251b48ac02debfa93635024cd6dbc3e8728756d76b695fbef5bbbe1",
+  "manifestSha256": "0f7d2e40fa033931dfd6a964b8591e8ba07ba0277657af438a5ba96d5f585abf",
   "runs": 5,
   "normalizedEvidenceIdentical": true,
+  "absolutePathScanPassed": true,
   "normalizationRemovedFields": [
     "receiptId",
     "receiptDigest",
@@ -13,32 +17,52 @@
     "sharedInvocationDurationMs",
     "log"
   ],
-  "normalizedEvidenceSha256": "5f13bb20ed64c23348863f33491809bec255c410608f5b71ecc4184b84f6c81f",
+  "normalizedEvidenceSha256": "8dbe2994a373729832adde418712191547940a61100477e7a3ed7f2836c442a6",
   "rawRuns": [
     {
       "run": 1,
-      "durationMs": 82348,
-      "receiptDigest": "f3a653eaeedb9c7167c342cbac599e2948ae21faaa60dc6ec0af56f9a2211e08"
+      "durationMs": 34819,
+      "receiptDigest": "9f00dd80401c5dad8b45348eb9f331a0bc01d67ba21f556f3911c813fad41359",
+      "verdict": "VERIFIED",
+      "changedLineMutants": 5,
+      "requiredChangedLineMutants": 2,
+      "killed": 5
     },
     {
       "run": 2,
-      "durationMs": 44214,
-      "receiptDigest": "64126d1c4811c39878a6b5b41c29d69efd08a2a11ae118d4c7c0c0949f98a2cb"
+      "durationMs": 37413,
+      "receiptDigest": "bbf987207d5388160466e867135fe2b7c9c9efadb23ae24bbd5984dba96aa02e",
+      "verdict": "VERIFIED",
+      "changedLineMutants": 5,
+      "requiredChangedLineMutants": 2,
+      "killed": 5
     },
     {
       "run": 3,
-      "durationMs": 39539,
-      "receiptDigest": "e9b96895005c64dab8442d3863a4f1b65da79fa1d97cc90e8b376dc4cc17a9bd"
+      "durationMs": 38752,
+      "receiptDigest": "4de98dacf461603ab2b94a265acee9bd2a001ddc94e29864da8aa6db604a856b",
+      "verdict": "VERIFIED",
+      "changedLineMutants": 5,
+      "requiredChangedLineMutants": 2,
+      "killed": 5
     },
     {
       "run": 4,
-      "durationMs": 34470,
-      "receiptDigest": "ee3d03d0fc356febcfffa87cdd915a33ffc17ab61d3953f2cc0c039b9e076eae"
+      "durationMs": 32058,
+      "receiptDigest": "1b692ab376b058a2485bf2094bf4546cc7923af10b67679659f29e81c9e689a0",
+      "verdict": "VERIFIED",
+      "changedLineMutants": 5,
+      "requiredChangedLineMutants": 2,
+      "killed": 5
     },
     {
       "run": 5,
-      "durationMs": 36515,
-      "receiptDigest": "298e71652f37c2f17aa0cf8b049c110196ca12a6f8137c30747516a36fc981b3"
+      "durationMs": 30062,
+      "receiptDigest": "2e619c7cdd43b9610b0855edcf90bd85963ea82b3c36849a26a031f20291271d",
+      "verdict": "VERIFIED",
+      "changedLineMutants": 5,
+      "requiredChangedLineMutants": 2,
+      "killed": 5
     }
   ]
 }

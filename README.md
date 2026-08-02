@@ -1,8 +1,8 @@
 # PatchReceipt
 
-> Codex writes the patch. PatchReceipt proves whether it deserves to ship.
+> AI writes the patch. PatchReceipt proves whether it deserves to ship.
 
-PatchReceipt is a deterministic verification layer for AI-generated Java patches. It reproduces the reported bug on a pristine baseline, applies the patch, reruns the proof, executes unchanged regressions and a sealed edge-case pack, challenges the evidence with changed-line mutation testing, detects scope drift, and emits one evidence receipt as JSON, Markdown, and standalone HTML.
+PatchReceipt is a model-agnostic verification layer for AI-generated Java patches. It accepts a unified diff regardless of whether it came from Codex, Claude Code, Cursor, Copilot, or another coding agent. It reproduces the reported bug on a pristine baseline, applies the patch, compares what actually changed on disk, reruns the proof, executes unchanged regressions and a sealed edge-case pack, challenges the evidence with changed-line mutation testing, and emits one evidence receipt as JSON, Markdown, and standalone HTML.
 
 It uses no runtime LLM or API key.
 
@@ -15,13 +15,16 @@ The bundled `checkout-core` case asks whether retried, case-insensitive coupon c
 | Candidate | Correctness evidence | Scope | Mutation | Verdict |
 | --- | --- | --- | --- | --- |
 | Plausible object `distinct()` fix | Reproduction fixed; 3 sealed edge cases fail | Clean | Skipped after correctness failure | `REJECTED` |
-| Correct fix with unrelated edit | 6 regressions and 9 edge cases pass | Unexpected production path | 100% changed-line score | `PARTIALLY_VERIFIED` |
-| Minimal robust fix | 6 regressions and 9 edge cases pass | Clean | 4/4 changed-line mutants killed | `VERIFIED` |
+| Correct fix with unrelated edit | 6 regressions and 9 edge cases pass | Unexpected production path | 1/1 killed; below 2-mutant minimum | `PARTIALLY_VERIFIED` |
+| Minimal robust fix | 6 regressions and 9 edge cases pass | Clean observed filesystem scope | 5/5 changed-line mutants killed | `VERIFIED` |
 
-The measured robust browser run completed in **27.036 seconds** on the development machine.
-The six-patch ground-truthed corpus matched all six expected verdicts with
-zero unsafe `VERIFIED` outcomes, and five robust runs produced identical
-normalized evidence.
+The hardened six-patch ground-truthed corpus matched all six expected verdicts
+with zero unsafe `VERIFIED` outcomes. Its primary robust run completed in
+38.944 seconds in the extended correctness harness, with every individual
+stage below the production stage limit. This is a local observation, not a
+deployed latency percentile. The exact final packaged Java 21 JAR separately
+completed the same public robust flow through the production-config dashboard
+in 25.943 seconds.
 
 ## Run locally
 
@@ -76,6 +79,22 @@ java -jar target/patch-receipt-0.0.1-SNAPSHOT.jar verify
 
 Without `--allow-local-execution`, the CLI exits without running the project. Java builds and tests can execute arbitrary code; review local inputs first.
 
+## Use it with an agentic coding tool
+
+PatchReceipt sits after the coding agent and before merge:
+
+```text
+Coding agent -> unified diff -> PatchReceipt -> evidence receipt -> human or CI decision
+```
+
+1. Keep a clean copy of the small Maven project as the baseline.
+2. Ask any coding agent to fix the bug on a branch or in a separate working tree.
+3. Export the agent's change as a unified diff.
+4. Run the trusted-project CLI with the baseline, bug report, diff, and a verifier pack prepared independently of the candidate patch.
+5. Give the JSON or Markdown receipt back to the agent for another attempt, or require `VERIFIED` before merge.
+
+PatchReceipt does not need to call the agent or know which model produced the change. The integration boundary is the ordinary unified diff, so it works offline and can be driven by a person, an agent loop, or CI. See [the agentic-AI workflow](docs/AGENTIC_AI_WORKFLOW.md) for a complete example and the important verifier-pack independence rule.
+
 ## Hosted API
 
 The hosted surface accepts identifiers only:
@@ -93,14 +112,14 @@ There is no upload, URL, repository, source, command, path, or test-content fiel
 ## Verdict policy
 
 - `REJECTED`: a mandatory correctness or safety gate fails.
-- `PARTIALLY_VERIFIED`: correctness passes, but mutation evidence is incomplete/below threshold or declared scope drifts.
-- `VERIFIED`: reproduction, regressions, edge cases, clean scope, and the mutation threshold all pass.
+- `PARTIALLY_VERIFIED`: correctness passes, but observed scope drifts or mutation evidence is unhealthy, incomplete, missing for a changed file, or below threshold.
+- `VERIFIED`: reproduction, regressions, edge cases, observed scope, mutation-process health, file-level mutation coverage, the mutation threshold, and the minimum of two viable changed-line mutants all pass.
 
 A weighted trust score never overrides these rules.
 
 ## Safety boundary
 
-The public service executes only bundled, hash-allowlisted project, patch, manifest, bug-report, and verifier-pack inputs. It uses a single-worker bounded queue, stage and run limits, capped logs/workspaces, argument-array process execution, process-tree termination, path validation, offline Maven, scratch workspaces, sanitized evidence, and a non-root container user.
+The public service executes only bundled, hash-allowlisted project, patch, manifest, bug-report, and verifier-pack inputs. It uses strict preflight plus post-apply filesystem reconciliation, a single-worker bounded queue, stage and run limits, capped logs/workspaces, argument-array process execution, process-tree termination, path validation, Maven offline mode, scratch workspaces, centrally sanitised evidence, and a non-root container user. Maven offline mode is not a network-egress firewall.
 
 The container is not presented as a secure arbitrary-code sandbox. Arbitrary hosted repository execution is intentionally unsupported. See [docs/SECURITY.md](docs/SECURITY.md).
 
@@ -110,6 +129,7 @@ The container is not presented as a secure arbitrary-code sandbox. Arbitrary hos
 - [Architecture](docs/ARCHITECTURE.md)
 - [Security model](docs/SECURITY.md)
 - [Deployment guide](docs/DEPLOYMENT.md)
+- [Agentic-AI workflow](docs/AGENTIC_AI_WORKFLOW.md)
 - [Evaluation](docs/EVALUATION.md)
 - [Demo script](docs/DEMO_SCRIPT.md)
 - [Submission document](docs/SUBMISSION_DOCUMENT.md)
@@ -137,6 +157,6 @@ Codex is the primary builder and owns planning, architecture, implementation, te
 
 Claude Code is an independent reviewer through `CLAUDE_HANDOFF.md`, `reviews/claude/`, and `REVIEW_DECISIONS.md`; it is not the primary implementation agent. PatchReceipt itself does not call OpenAI or Anthropic at runtime.
 
-## License
+## Licence
 
 Apache License 2.0.

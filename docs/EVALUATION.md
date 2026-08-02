@@ -1,97 +1,95 @@
 # PatchReceipt evaluation
 
-Evaluation snapshot: 25 July 2026
+Evaluation snapshot: 27 July 2026
 
 ## Claim under evaluation
 
-PatchReceipt is a deterministic verification layer for AI-generated Java patches:
+PatchReceipt is a model-agnostic deterministic verification layer for
+AI-generated Java patches:
 
-> Codex writes the patch. PatchReceipt proves whether it deserves to ship.
+> AI writes the patch. PatchReceipt proves whether it deserves to ship.
 
-The product does not assign a vague trust score. It applies fixed evidence gates:
+The configured verdict is rule-based:
 
-- `REJECTED` when mandatory correctness or safety evidence fails.
-- `PARTIALLY_VERIFIED` when correctness passes but scope or mutation confidence is incomplete.
-- `VERIFIED` only when reproduction, regression, independent edge-case, scope, and mutation gates all pass.
+- `REJECTED` when mandatory correctness, execution, or hard observed-scope
+  evidence fails.
+- `PARTIALLY_VERIFIED` when correctness passes but observed scope drifts or
+  mutation evidence is unhealthy, incomplete, missing for a changed production
+  file, or below threshold.
+- `VERIFIED` only when reproduction, unchanged regressions, independent edge
+  cases, observed scope, mutation-process health, file-level mutation evidence,
+  the score threshold, and a minimum of two viable changed-line mutants all
+  pass.
 
-The hosted interface is intentionally narrow. It accepts only bundled case and patch identifiers; it does not accept uploaded repositories, raw patches, commands, URLs, or runtime AI input.
+Receipt schema v2 stores the same verdict, plain summary, limitations, and
+evidence for JSON, Markdown, HTML, and the receipt digest.
 
-## Measured results
+## Hardened safety suite
 
-The following results have been observed and may be used in submission materials.
+The reproducible Java 21 release command is:
 
-| Evidence | Measured result | Interpretation |
-|---|---:|---|
-| Focused automated suite | 35 non-end-to-end tests passed | The current focused suite passed without relying on the expensive fixture end-to-end test. |
-| Robust browser run | `VERIFIED` in 27,036 ms | One judge-facing run completed below the 45-second milestone target and the 60-second public target. This is one observation, not a percentile. |
-| Original regressions in that run | 6 passed | The patch preserved the bundled project's original test behavior. |
-| Independent edge cases in that run | 9 passed | The sealed verifier pack challenged behavior beyond the original regression suite. |
-| Changed-line mutation evidence | 4 of 4 mutants killed | The robust patch achieved 100% on the four viable mutants generated for changed lines in that run. |
-| Public candidate separation | Browser confirmed `REJECTED`, `PARTIALLY_VERIFIED`, and `VERIFIED` | The three judge-facing candidates exercised all three verdict states in the browser. |
-| Six-patch corpus | 6 of 6 expected verdicts | Both robust patches verified, the drift case remained partial, and all three unsafe candidates were rejected. |
-| Unsafe false `VERIFIED` outcomes | 0 | No edge-case trap, build bypass, compile break, or scope-drift candidate received full verification. |
-| Five-run normalized determinism | 5 of 5 identical | After removing only run IDs, timestamps, durations, logs, and the digest derived from those volatile fields, every remaining evidence structure had SHA-256 `5f13bb20ed64c23348863f33491809bec255c410608f5b71ecc4184b84f6c81f`. |
-| Final local release suite | 36 passed, 2 gated skips | The 46.838-second build included the live mutation-backed vertical slice; no Java process or scratch workspace remained afterward. |
+```text
+./mvnw -B -ntp -o verify
+```
 
-### Browser-confirmed scenarios
+It discovered **77 tests**, passed **75**, and skipped only the two explicitly
+gated corpus/determinism tests, with **0 failures and 0 errors**. The suite
+includes Claude’s exact hidden-file and line-accounting attacks, malformed
+preflight input, preflight/observed mismatches, failed PIT processes with a
+parseable 100% report, skipped mandatory suites, exact reproduction failure
+matching, URI-encoded path sanitisation, receipt parity, terminal worker
+failure, state-race protection, non-minimal diff reconciliation, explicit
+rename rejection, timeout wording, and mutation-evidence minimums.
 
-| Candidate | Browser verdict | Evidence distinction |
-|---|---|---|
-| Plausible object-level deduplication | `REJECTED` | A patch that looks reasonable does not pass every mandatory correctness gate. |
-| Correct fix with unrelated drift | `PARTIALLY_VERIFIED` | Correctness evidence passes, but an unexpected production path prevents full verification. |
-| Minimal robust fix | `VERIFIED` | Correctness, declared scope, and changed-line mutation evidence pass. |
+Malformed XML tests deliberately print parser diagnostics while asserting that
+the reports fail closed.
 
-These are behavior-level browser observations. They do not constitute a
-deployed performance benchmark. The separate six-patch corpus and determinism
-protocols below are complete.
+## Six-patch ground-truth corpus
 
-## What the 33 focused tests exercise
+The final serial corpus used Java 21.0.7, Maven 3.9.16, and PIT 1.25.4.
+The correctness harness allowed
+180 seconds per complete verification and 120 seconds per stage so a loaded
+developer machine would not turn a verdict test into a latency test.
+Production configuration is 90 seconds total and 45 seconds per stage.
 
-The current test source targets:
+| Patch ID | Expected | Actual | Duration | Mutation | Scope | Receipt digest |
+| --- | --- | --- | ---: | --- | --- | --- |
+| `plausible-distinct` | `REJECTED` | `REJECTED` | 20,823 ms | skipped after correctness failure | observed, clean | `c59d3fc7…c7dc8` |
+| `correct-with-drift` | `PARTIALLY_VERIFIED` | `PARTIALLY_VERIFIED` | 22,762 ms | 1/1 killed, below 2-mutant minimum | observed, 1 unexpected file | `1d386eaa…761b0` |
+| `minimal-robust` | `VERIFIED` | `VERIFIED` | 38,944 ms | 5/5 killed; 2 required | observed, clean | `21d6fe25…ff13f` |
+| `alternate-robust` | `PARTIALLY_VERIFIED` | `PARTIALLY_VERIFIED` | 36,191 ms | 1/1 killed, below 2-mutant minimum | observed, clean | `63866620…547b6` |
+| `build-bypass` | `REJECTED` | `REJECTED` | 3 ms | not run | blocked at preflight | `82279139…372b5` |
+| `compile-breaking` | `REJECTED` | `REJECTED` | 15,201 ms | skipped after correctness failure | observed, clean | `53fb2578…c8f95` |
 
-- bundled-case loading and hosted allowlisting;
-- local CLI refusal without explicit execution consent;
-- verdict precedence and mutation-confidence rules;
-- Surefire and PIT XML parsing, including malformed reports;
-- malformed, binary, traversal, forbidden, unexpected, and oversized diffs;
-- process timeout and output handling;
-- receipt parity and HTML escaping;
-- application startup and web API behavior.
+Results:
 
-The reported number is the aggregate pass count for the focused non-end-to-end run. It must not be combined with a separate fixture run and presented as a larger single-suite total.
+- **6 of 6** expected verdicts matched.
+- **0** unsafe patches received `VERIFIED`.
+- The public robust patch used only one expected production file and reconciled
+  to **11 additions and 1 deletion**.
+- The public robust patch killed **5 of 5** viable mutants on genuinely observed
+  changed lines.
+- A scan of all generated corpus receipts found no native, slash-normalised, or
+  `%20`-encoded local absolute path.
 
-## Remaining pending measurements
+These serial local durations are not a deployed latency sample or p95.
 
-The following items are deliberately labelled `PENDING` until their raw outputs are recorded.
-
-| Evaluation | Status | Required evidence before claiming completion |
-|---|---|---|
-| Deployed p95 latency | **PENDING** | Measure a defined sample of warm runs against the public deployment, retain every duration, and calculate p95. The single 27,036 ms browser run is not p95. |
-| Amateur usability test | **PENDING** | Run `TESTER_SCRIPT.md` with three testers, preserve task times and answers, and report assistance and completion rates. |
-
-## Recorded and pending protocols
-
-### Six-patch corpus
-
-The final local corpus recorded:
-
-| Patch ID | Ground truth | Actual verdict | Duration | Receipt digest | Evidence |
-|---|---|---|---:|---|---|
-| `plausible-distinct` | `REJECTED` | `REJECTED` | 30,056 ms | `7adcbaeb…1882ca4` | Three sealed edge cases fail. |
-| `correct-with-drift` | `PARTIALLY_VERIFIED` | `PARTIALLY_VERIFIED` | 61,567 ms | `77a3d964…23e2458` | Correctness and mutation pass; `AuditBanner.java` is unexpected. |
-| `minimal-robust` | `VERIFIED` | `VERIFIED` | 44,402 ms | `450e79ad…fc1318` | Primary robust implementation. |
-| `alternate-robust` | `VERIFIED` | `VERIFIED` | 49,586 ms | `9f24ecda…001c12` | Alternate correct implementation. |
-| `build-bypass` | `REJECTED` | `REJECTED` | 1 ms | `5585db4c…0bf78` | Preflight rejects forbidden `pom.xml`. |
-| `compile-breaking` | `REJECTED` | `REJECTED` | 33,772 ms | `83a84f07…b36589` | Patch applies; Java compilation prevents required tests from executing. |
-
-These durations come from one serial local corpus invocation and are not a
-latency percentile. The machine-readable result is
+The complete machine-readable record is
 [`evidence/evaluation-summary.json`](evidence/evaluation-summary.json).
 
-### Five-run determinism
+## Five-run determinism
 
-The same `minimal-robust` candidate ran five times. Raw durations were 82,348,
-44,214, 39,539, 34,470, and 36,515 ms.
+The frozen public `minimal-robust` candidate ran five times. Every run returned
+`VERIFIED`, killed 5 of 5 changed-line mutants, and produced identical
+normalised evidence.
+
+Raw durations were:
+
+- 34,819 ms;
+- 37,413 ms;
+- 38,752 ms;
+- 32,058 ms; and
+- 30,062 ms.
 
 Normalization removed only:
 
@@ -100,40 +98,61 @@ Normalization removed only:
 - total and shared-invocation durations; and
 - process logs.
 
-Verdict, hashes, stage statuses and summaries, test evidence, mutation
-evidence, scope evidence, reasons, warnings, and toolchain details remained.
-All five normalized structures produced the same SHA-256:
+Verdict, schema, canonical summary and limitations, input hashes, stage
+statuses and summaries, test evidence, mutation-process health, mutation
+evidence, observed scope evidence, reasons, warnings, and toolchain details
+remained. The normalised UTF-8 JSON SHA-256 is:
 
-`5f13bb20ed64c23348863f33491809bec255c410608f5b71ecc4184b84f6c81f`
+`8dbe2994a373729832adde418712191547940a61100477e7a3ed7f2836c442a6`
 
-The corrected automated protocol passed. Raw run digests and durations are in
+All five raw receipts also passed the absolute-path scan. Full details are in
 [`evidence/determinism-summary.json`](evidence/determinism-summary.json).
 
-### Deployed latency
+## Frozen release proof
 
-1. Deploy the exact commit used by the submission.
-2. Warm the service without recording the warm-up run.
-3. Run a declared sample size against the public URL.
-4. Record every end-to-end duration shown by the receipt.
-5. Report median, p95, minimum, maximum, failures, and sample size.
+The final Java 21 release build discovered **77 tests**, passed **75**, skipped
+only the two explicitly gated corpus tests, and reported **0 failures and 0
+errors**. Its live PIT-backed vertical slice completed in **35.58 seconds**;
+the complete Maven build reported **1 minute 35 seconds**.
 
-### Usability
+All three public candidates were also exercised through the production-config
+dashboard with the 90-second whole-run and 45-second per-stage limits:
 
-Use `TESTER_SCRIPT.md` without coaching. The planned acceptance threshold is:
+- `plausible-distinct` returned `REJECTED` in 23,381 ms;
+- `correct-with-drift` returned `PARTIALLY_VERIFIED` in 30,125 ms; and
+- `minimal-robust` returned `VERIFIED` in 25,943 ms.
 
-- at least two of three testers complete the core flow unaided in under three minutes; and
-- all three can explain the verdict after viewing the receipt.
+The exact final packaged Java 21 JAR produced the robust `VERIFIED` receipt in
+**25,943 ms**, with 6/6 regressions, 9/9 edge cases, 5/5 observed changed-line
+mutants killed, a healthy mutation process, and clean observed scope. Its
+receipt digest was
+`c0ba742acf8e7928fbcfbeeb6fbb35cb5b87ca2741df8dfe67fd90fd78ebc0ab`.
+The mutable run-status response returned `Cache-Control: no-store`, and a scan
+of the final receipt found no plain or encoded local absolute path.
 
-This threshold remains pending until all three sessions are measured.
+## Current verification status
+
+| Evaluation | Status | Interpretation |
+| --- | --- | --- |
+| Six-patch corpus | **PASS** | 6/6 expected verdicts; zero unsafe `VERIFIED`. |
+| Five-run determinism | **PASS** | 5/5 normalised evidence structures identical. |
+| Full Java 21 `verify` | **PASS** | 77 discovered; 75 passed; 2 intentionally gated; 0 failures/errors. |
+| Production-config dashboard | **PASS** | All three public verdicts matched; final packaged robust run was 25,943 ms. |
+| Production container | **BLOCKED LOCALLY** | Docker/Podman is unavailable; prepared CI must run a real `VERIFIED` job. |
+| Deployed p95 latency | **PENDING** | Requires a public deployment and declared warm sample. |
+| Three-person usability test | **PENDING** | Requires the three external tester sessions. |
+| Claude final adversarial audit | **PASS** | `READY FOR CONTAINER GATE`; no Critical finding remains. |
 
 ## Honest interpretation
 
-Current evidence shows that PatchReceipt separates all six ground-truthed
-patches as expected with zero unsafe `VERIFIED` results. It also produces a
-robust receipt with 6 passing regressions, 9 passing independent edge cases,
-and 4 of 4 changed-line mutants killed. Five repeated robust runs have
-identical normalized evidence.
+The current local evidence establishes that the hardened verdict logic separates
+the six ground-truthed patches, that Claude’s three reported exploit classes
+fail closed, that evidence is deterministic after removing declared volatile
+fields, that the final Java 21 JAR produces all three judge-facing verdicts
+through the dashboard, and that generated receipts do not expose the tested
+local path forms.
 
-Current evidence does **not** establish deployed p95 latency or amateur
-usability. Those claims must stay out of submission narration until the public
-deployment and three tester sessions are measured.
+It does **not** establish deployed p95 latency, public-provider isolation,
+arbitrary-repository safety, design quality, application security, performance,
+concurrency behaviour, or requirements outside the sealed verifier pack. Those
+limits also appear in receipt schema v2.
