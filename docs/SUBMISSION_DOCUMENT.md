@@ -11,7 +11,7 @@ Current public links:
 
 - **Live application:** [patch-receipt-production.up.railway.app](https://patch-receipt-production.up.railway.app/)
 - **Source repository:** [github.com/Shommabomb/patch-receipt](https://github.com/Shommabomb/patch-receipt)
-- **Demo video:** `[ADD PUBLIC VIDEO URL]`
+- **Demo video:** [PatchReceipt — 2:57 walkthrough](https://youtu.be/B1VGq4NYXqM)
 - **Presentation:** [GitHub PDF](https://github.com/Shommabomb/patch-receipt/blob/main/docs/PRESENTATION.pdf)
 
 ## How judges can try it

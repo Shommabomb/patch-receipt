@@ -604,3 +604,11 @@ the autonomous primary builder. Current repository guidance, public-facing
 copy, recording narration, handoff wording, and presentation notes were updated
 to reflect that ownership accurately. Independent-review records and Git
 history remain preserved rather than being erased or rewritten.
+
+## 2026-08-02 — Final demo video
+
+The user recorded and uploaded the judge-facing walkthrough at
+`https://youtu.be/B1VGq4NYXqM`. A signed-out browser check confirmed that the
+video is accessible as Unlisted, is titled `Patch Receipt`, and runs for 2:57,
+inside the three-minute limit. The URL was added to the README and submission
+document. No usability-test result is inferred from the video upload.

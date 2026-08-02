@@ -8,6 +8,8 @@ It uses no runtime LLM or API key.
 
 **Live demo:** [patch-receipt-production.up.railway.app](https://patch-receipt-production.up.railway.app/)
 
+**Demo video:** [PatchReceipt — 2:57 walkthrough](https://youtu.be/B1VGq4NYXqM)
+
 The hosted demo is deliberately curated: it runs only bundled, hash-allowlisted
 projects and patches. Developers can verify their own trusted Java 21 Maven
 projects through the local CLI described below.

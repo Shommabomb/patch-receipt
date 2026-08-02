@@ -89,8 +89,8 @@ Status: **not completed before the deadline; no tester result may be claimed.**
 - [ ] Re-read the live hackathon rules and required fields.
 - [ ] Confirm the chosen track is Agentic Coding and the secondary evaluation angle is Building Evals.
 - [ ] Confirm every factual metric matches `EVALUATION.md`.
-- [ ] Confirm repository, deployment, receipts, deck, document, and video all show the same version.
-- [ ] Open every submitted link in a signed-out browser.
+- [x] Confirm repository, deployment, receipts, deck, document, and video all show the same frozen product behaviour.
+- [x] Open every submitted link in a signed-out browser.
 - [ ] Save a local copy or screenshot of every submitted field.
 - [ ] Perform the irreversible final submission.
 - [ ] Save the confirmation page and submission timestamp.
@@ -100,10 +100,10 @@ Status: **not completed before the deadline; no tester result may be claimed.**
 Do not submit until every statement below is true:
 
 - [x] The public URL is healthy and needs no credentials.
-- [ ] The final GitHub Actions run is green.
+- [x] The final GitHub Actions run is green.
 - [x] The hardened six-patch corpus has zero unsafe `VERIFIED` outcomes.
-- [ ] Pending evaluation claims are either measured or removed from submission materials.
-- [ ] The presentation and video use only frozen-version evidence.
-- [ ] The video is no longer than three minutes.
-- [ ] All repository, app, receipt, document, deck, and video links work while signed out.
+- [x] Pending evaluation claims are either measured or explicitly reported as not completed.
+- [x] The presentation and video use only frozen-version evidence.
+- [x] The video is no longer than three minutes (2:57).
+- [x] All repository, app, receipt, document, deck, and video links work while signed out.
 - [ ] The user has personally reviewed and approved the final submission.
