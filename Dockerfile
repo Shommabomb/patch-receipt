@@ -1,5 +1,9 @@
 FROM eclipse-temurin:21-jdk-noble AS build
 
+RUN apt-get update \
+    && apt-get install --yes --no-install-recommends unzip \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /workspace
 ENV MAVEN_USER_HOME=/workspace/.cache/maven
 
