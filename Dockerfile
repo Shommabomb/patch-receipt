@@ -11,7 +11,7 @@ COPY . .
 RUN chmod +x mvnw \
     && ./mvnw -B -ntp \
        -f src/main/resources/demo-cases/checkout-coupons/project/pom.xml \
-       -DskipTests dependency:go-offline \
+       test org.pitest:pitest-maven:1.25.4:mutationCoverage \
     && ./mvnw -B -ntp -Dtest=VerticalSliceIntegrationTests test \
     && ./mvnw -B -ntp -DskipTests package
 
